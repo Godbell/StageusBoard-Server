@@ -4,6 +4,5 @@
   "editor.indentSize": 2,
   "editor.tabSize": 2,
   "prettier.tabWidth": 2,
-  "prettier.singleQuote": true,
-  "prettier.bracketSpacing": false
+  "prettier.singleQuote": true
 }
