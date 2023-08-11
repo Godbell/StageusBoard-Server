@@ -1,0 +1,10 @@
+{
+  "name": "stageusBE",
+  "version": "1.0.0",
+  "main": "server.js",
+  "author": "Godbell",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
