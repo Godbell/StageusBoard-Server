@@ -8,16 +8,13 @@ import {
 
 const userRouter = express.Router();
 
-userRouter.get('/:idx', (req, res) => {
-  if (
-    req.session.userIdx === undefined ||
-    req.params.idx !== req.session.userIdx
-  ) {
+userRouter.get('/', (req, res) => {
+  if (req.session.userIdx === undefined) {
     res.sendStatus(401);
     return;
   }
 
-  const user = getUserProfile(Number(req.params.idx));
+  const user = getUserProfile(Number(req.session.idx));
 
   if (user) {
     res.json({
@@ -34,16 +31,13 @@ userRouter.get('/:idx', (req, res) => {
   }
 });
 
-userRouter.post('/:idx/edit-password', (req, res) => {
-  if (
-    req.session.userIdx === undefined ||
-    req.params.idx !== req.session.userIdx
-  ) {
+userRouter.post('/edit-password', (req, res) => {
+  if (req.session.userIdx === undefined) {
     res.sendStatus(401);
     return;
   }
 
-  const result = editUser(Number(req.params.idx), {
+  const result = editUser(Number(req.session.idx), {
     password: req.body.password,
   });
 
