@@ -25,7 +25,7 @@ articleRouter.post('/add', (req, res) => {
   }
 
   const result = addArticle({
-    authorIdx: req.session.userIdx,
+    authorIdx: Number(req.session.userIdx),
     title: req.body.title,
     content: req.body.content,
   });
