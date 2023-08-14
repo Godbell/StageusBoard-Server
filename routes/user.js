@@ -66,12 +66,12 @@ userRouter.post('/delete', (req, req) => {
 
 userRouter.post('/signup', (req, res) => {
   const result = addUser({
-    username: body.username,
-    password: body.password,
-    nickname: body.nickname,
-    firstName: body.firstName,
-    lastName: body.lastName,
-    email: body.email,
+    username: req.body.username,
+    password: req.body.password,
+    nickname: req.body.nickname,
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    email: req.body.email,
   });
 
   if (result === true) {
