@@ -1,5 +1,6 @@
 export class User {
   constructor({
+    idx,
     username,
     password,
     firstName,
@@ -8,6 +9,7 @@ export class User {
     email,
     createdAt,
   }) {
+    this._idx = idx;
     this._username = username;
     this._password = password;
     this._firstName = firstName;
@@ -15,6 +17,17 @@ export class User {
     this._nickname = nickname;
     this._email = email;
     this._createdAt = createdAt;
+  }
+
+  get idx() {
+    return this._idx;
+  }
+  set idx(input) {
+    if (typeof input !== 'number' || input < 0) {
+      throw new Error('invalid user idx');
+    }
+
+    this._idx = input;
   }
 
   get username() {
