@@ -1,6 +1,6 @@
 import { User } from '../models/user.js';
 
-const dummyUsers = [
+let dummyUsers = [
   {
     idx: 0,
     username: 'test0',
