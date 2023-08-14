@@ -42,13 +42,7 @@ export const addArticle = ({ authorIdx, title, content }) => {
   }
 };
 
-export const editArticle = ({
-  signedUserIdx,
-  articleIdx,
-  authorIdx,
-  title,
-  content,
-}) => {
+export const editArticle = ({ signedUserIdx, articleIdx, title, content }) => {
   if (isNaN(articleIdx) || articleIdx < 0) {
     return false;
   }
