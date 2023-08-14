@@ -9,7 +9,10 @@ import {
 const userRouter = express.Router();
 
 userRouter.get('/:idx', (req, res) => {
-  // if (req.session.userIdx === undefined) {
+  // if (
+  //   req.session.userIdx === undefined &&
+  //   req.params.idx === req.session.userIdx
+  // ) {
   //   res.sendStatus(401);
   //   return;
   // }
@@ -32,7 +35,10 @@ userRouter.get('/:idx', (req, res) => {
 });
 
 userRouter.post('/:idx/edit-password', (req, res) => {
-  // if (req.session.userIdx === undefined) {
+  // if (
+  //   req.session.userIdx === undefined &&
+  //   req.params.idx === req.session.userIdx
+  // ) {
   //   res.sendStatus(401);
   //   return;
   // }
