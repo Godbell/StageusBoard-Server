@@ -4,6 +4,7 @@ import {
   editUser,
   addUser,
   checkSignInData,
+  deleteUser,
 } from '../services/user.js';
 
 const userRouter = express.Router();
@@ -40,6 +41,21 @@ userRouter.post('/edit-password', (req, res) => {
   const result = editUser(Number(req.session.idx), {
     password: req.body.password,
   });
+
+  if (result === true) {
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(400);
+  }
+});
+
+userRouter.post('/delete', (req, req) => {
+  if (req.session.userIdx === undefined) {
+    res.sendStatus(401);
+    return;
+  }
+
+  const result = deleteUser(req.session.userIdx);
 
   if (result === true) {
     res.sendStatus(200);
