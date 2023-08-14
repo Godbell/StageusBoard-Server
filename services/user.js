@@ -104,6 +104,7 @@ export const deleteUser = (idx) => {
   if (isNaN(idx) || idx < 0) return false;
 
   try {
+    // TODO: replace to db delete
     dummyUsers = dummyUsers.filter((dummyUser) => dummyUser.idx !== idx);
 
     console.log(dummyUsers);
