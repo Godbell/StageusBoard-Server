@@ -10,14 +10,14 @@ let dummyArticlesData = [
   },
 ];
 
-export const getArticle = (idx) => {
-  if (isNaN(idx) || idx < 0) {
+export const getArticle = (articleIdx) => {
+  if (isNaN(articleIdx) || articleIdx < 0) {
     return null;
   }
 
   // TODO: replace to db select
   const article = new Article(
-    dummyArticlesData.find((dummyArticle) => dummyArticle.idx === idx),
+    dummyArticlesData.find((dummyArticle) => dummyArticle.idx === articleIdx),
   );
 
   if (article) {
@@ -42,15 +42,22 @@ export const addArticle = ({ authorIdx, title, content }) => {
   }
 };
 
-export const editArticle = (idx, { authorIdx, title, content }) => {
-  if (isNaN(idx) || idx < 0) {
+export const editArticle = ({
+  signedUserIdx,
+  articleIdx,
+  authorIdx,
+  title,
+  content,
+}) => {
+  if (isNaN(articleIdx) || articleIdx < 0) {
     return false;
   }
 
   try {
     // TODO: replace to db update
     dummyArticlesData.map((dummyArticle) =>
-      dummyArticle.idx === idx && dummyArticle.authorIdx === authorIdx
+      dummyArticle.idx === articleIdx &&
+      dummyArticle.authorIdx === signedUserIdx
         ? {
             title,
             content,
@@ -66,15 +73,18 @@ export const editArticle = (idx, { authorIdx, title, content }) => {
   }
 };
 
-export const deleteArticle = (idx, authorIdx) => {
-  if (isNaN(idx) || idx < 0) {
+export const deleteArticle = (articleIdx, signedUserIdx) => {
+  if (isNaN(articleIdx) || articleIdx < 0) {
     return false;
   }
 
   // TODO: replace to db delete
   dummyArticlesData = dummyArticlesData.filter(
     (dummyArticle) =>
-      !(dummyArticle.idx === idx && dummyArticle.authorIdx === authorIdx),
+      !(
+        dummyArticle.idx === articleIdx &&
+        dummyArticle.authorIdx === signedUserIdx
+      ),
   );
   console.log(dummyArticlesData);
 
