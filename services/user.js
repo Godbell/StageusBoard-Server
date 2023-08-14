@@ -53,8 +53,9 @@ export const addUser = ({
     user.email = email;
 
     // TODO: replace to db insert
-    console.log(user);
+    dummyUsers = [...dummyUsers, { ...user }];
 
+    console.log(dummyUsers);
     return true;
   } catch (e) {
     console.log(e.message);
@@ -91,6 +92,7 @@ export const editUser = (
         : dummyUser,
     );
 
+    console.log(dummyUsers);
     return true;
   } catch (e) {
     console.log(e.message);
@@ -103,6 +105,8 @@ export const deleteUser = (idx) => {
 
   try {
     dummyUsers = dummyUsers.filter((dummyUser) => dummyUser.idx !== idx);
+
+    console.log(dummyUsers);
     return true;
   } catch (e) {
     console.log(e);
