@@ -9,13 +9,13 @@ import {
 const userRouter = express.Router();
 
 userRouter.get('/:idx', (req, res) => {
-  // if (
-  //   req.session.userIdx === undefined &&
-  //   req.params.idx === req.session.userIdx
-  // ) {
-  //   res.sendStatus(401);
-  //   return;
-  // }
+  if (
+    req.session.userIdx === undefined &&
+    req.params.idx === req.session.userIdx
+  ) {
+    res.sendStatus(401);
+    return;
+  }
 
   const user = getUserProfile(Number(req.params.idx));
 
@@ -35,13 +35,13 @@ userRouter.get('/:idx', (req, res) => {
 });
 
 userRouter.post('/:idx/edit-password', (req, res) => {
-  // if (
-  //   req.session.userIdx === undefined &&
-  //   req.params.idx === req.session.userIdx
-  // ) {
-  //   res.sendStatus(401);
-  //   return;
-  // }
+  if (
+    req.session.userIdx === undefined &&
+    req.params.idx === req.session.userIdx
+  ) {
+    res.sendStatus(401);
+    return;
+  }
 
   const result = editUser(Number(req.params.idx), {
     password: req.body.password,
