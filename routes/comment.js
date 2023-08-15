@@ -32,7 +32,7 @@ commentRouter.post('/add', (req, res) => {
   });
 
   if (result === true) {
-    res.sendStatus(200);
+    res.sendStatus(201);
   } else {
     res.sendStatus(400);
   }
@@ -50,7 +50,7 @@ commentRouter.post(':idx/edit', (req, res) => {
   });
 
   if (result === true) {
-    res.sendStatus(200);
+    res.sendStatus(201);
   } else {
     res.sendStatus(400);
   }
@@ -68,7 +68,7 @@ commentRouter.post(':idx/delete', (req, res) => {
   );
 
   if (result === true) {
-    res.sendStatus(200);
+    res.sendStatus(201);
   } else {
     res.sendStatus(400);
   }

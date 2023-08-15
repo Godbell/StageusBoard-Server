@@ -56,7 +56,7 @@ userRouter.post('/reset-password', (req, res) => {
   });
 
   if (result === true) {
-    res.sendStatus(200);
+    res.sendStatus(201);
   } else {
     res.sendStatus(400);
   }
@@ -77,7 +77,7 @@ userRouter.post('/edit-profile', (req, res) => {
   });
 
   if (result === true) {
-    res.sendStatus(200);
+    res.sendStatus(201);
   } else {
     res.sendStatus(400);
   }
@@ -92,7 +92,7 @@ userRouter.post('/delete', (req, res) => {
   const result = deleteUser(req.session.userIdx);
 
   if (result === true) {
-    res.sendStatus(200);
+    res.sendStatus(201);
   } else {
     res.sendStatus(400);
   }
@@ -109,7 +109,7 @@ userRouter.post('/signup', (req, res) => {
   });
 
   if (result === true) {
-    res.sendStatus(200);
+    res.sendStatus(201);
   } else {
     res.sendStatus(400);
   }
@@ -120,7 +120,7 @@ userRouter.post('/signin', (req, res) => {
 
   if (result === true) {
     req.session.userIdx = req.body.idx;
-    res.sendStatus(200);
+    res.sendStatus(201);
   } else {
     res.sendStatus(400);
   }
