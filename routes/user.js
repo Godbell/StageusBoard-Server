@@ -34,7 +34,7 @@ userRouter.get('/', (req, res) => {
 });
 
 userRouter.get('/find-username/:email', (req, res) => {
-  const username = findUsername(req);
+  const username = findUsername(req.params.email);
 
   if (username) {
     res.json({
