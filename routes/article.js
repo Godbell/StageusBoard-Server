@@ -90,7 +90,7 @@ articleRouter.get('/:idx/comments', (req, res) => {
   const result = getComments(Number(req.params.idx));
 
   if (result) {
-    res.json(getComments);
+    res.json(result);
   } else {
     res.sendStatus(404);
   }
