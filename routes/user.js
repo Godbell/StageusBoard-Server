@@ -5,6 +5,7 @@ import {
   addUser,
   checkSignInData,
   deleteUser,
+  findUsername,
 } from '../services/user.js';
 
 const userRouter = express.Router();
@@ -26,6 +27,18 @@ userRouter.get('/', (req, res) => {
       lastName: user.lastName,
       email: user.email,
       createdAt: user.createdAt,
+    });
+  } else {
+    res.sendStatus(404);
+  }
+});
+
+userRouter.get('/find-username/:email', (req, res) => {
+  const username = findUsername(req);
+
+  if (username) {
+    res.json({
+      username,
     });
   } else {
     res.sendStatus(404);

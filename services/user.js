@@ -131,3 +131,23 @@ export const checkSignInData = (username, password) => {
     return true;
   } else return false;
 };
+
+export const findUsername = (email) => {
+  if (!email) return null;
+
+  const user = new User({});
+  try {
+    user.email = email;
+
+    const foundUsername = dummyUsers.find(
+      (dummyUser) => dummyUser.email === user.email,
+    ).username;
+
+    if (foundUsername) {
+      return foundUsername;
+    } else return null;
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
+};
