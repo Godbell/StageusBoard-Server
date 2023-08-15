@@ -32,7 +32,7 @@ userRouter.get('/', (req, res) => {
   }
 });
 
-userRouter.post('/edit-password', (req, res) => {
+userRouter.post('/reset-password', (req, res) => {
   if (req.session.userIdx === undefined) {
     res.sendStatus(401);
     return;
@@ -49,7 +49,28 @@ userRouter.post('/edit-password', (req, res) => {
   }
 });
 
-userRouter.post('/delete', (req, req) => {
+userRouter.post('/edit-profile', (req, res) => {
+  if (req.session.userIdx === undefined) {
+    res.sendStatus(401);
+    return;
+  }
+
+  const result = editUser(Number(req.session.idx), {
+    password: req.body.password,
+    nickname: req.body.nickname,
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    email: req.body.email,
+  });
+
+  if (result === true) {
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(400);
+  }
+});
+
+userRouter.post('/delete', (req, res) => {
   if (req.session.userIdx === undefined) {
     res.sendStatus(401);
     return;
