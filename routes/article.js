@@ -4,8 +4,8 @@ import {
   deleteArticle,
   editArticle,
   getArticle,
-} from '../services/article';
-import { getComments } from '../services/comment';
+} from '../services/article.js';
+import { getComments } from '../services/comment.js';
 
 const articleRouter = express.Router();
 
