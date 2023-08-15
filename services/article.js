@@ -25,6 +25,17 @@ export const getArticle = (articleIdx) => {
   } else return null;
 };
 
+export const getArticles = () => {
+  // TODO: replace to db select
+  const articles = dummyArticlesData.map(
+    (dummyArticle) => new Comment(dummyArticle),
+  );
+
+  if (articles) {
+    return articles;
+  } else return null;
+};
+
 export const addArticle = ({ authorIdx, title, content }) => {
   const article = new Article({});
   try {

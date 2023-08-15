@@ -16,12 +16,27 @@ export const getComment = (commentIdx) => {
   }
 
   // TODO: replace to db select
-  const article = new Comment(
-    dummyCommentsData.find((dummyArticle) => dummyArticle.idx === commentIdx),
+  const comment = new Comment(
+    dummyCommentsData.find((dummyComment) => dummyComment.idx === commentIdx),
   );
 
-  if (article) {
-    return article;
+  if (comment) {
+    return comment;
+  } else return null;
+};
+
+export const getComments = (articleIdx) => {
+  if (isNaN(articleIdx) || articleIdx < 0) {
+    return null;
+  }
+
+  // TODO: replace to db select
+  const comments = dummyCommentsData
+    .filter((dummyComment) => dummyComment.articleIdx === articleIdx)
+    .map((dummyComment) => new Comment(dummyComment));
+
+  if (comments) {
+    return comments;
   } else return null;
 };
 

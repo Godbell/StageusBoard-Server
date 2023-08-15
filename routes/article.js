@@ -5,14 +5,25 @@ import {
   editArticle,
   getArticle,
 } from '../services/article';
+import { getComments } from '../services/comment';
 
 const articleRouter = express.Router();
 
-articleRouter.get(':idx', (req, res) => {
+articleRouter.get('/:idx', (req, res) => {
   const article = getArticle(Number(req.params.idx));
 
   if (article) {
     res.json(article);
+  } else {
+    res.sendStatus(404);
+  }
+});
+
+articleRouter.get('/list', (req, res) => {
+  const articles = getArticles();
+
+  if (articles) {
+    res.json(articles);
   } else {
     res.sendStatus(404);
   }
@@ -37,7 +48,7 @@ articleRouter.post('/add', (req, res) => {
   }
 });
 
-articleRouter.post(':idx/edit', (req, res) => {
+articleRouter.post('/:idx/edit', (req, res) => {
   if (req.session.userIdx === undefined) {
     res.sendStatus(401);
     return;
@@ -57,7 +68,7 @@ articleRouter.post(':idx/edit', (req, res) => {
   }
 });
 
-articleRouter.post(':idx/delete', (req, res) => {
+articleRouter.post('/:idx/delete', (req, res) => {
   if (req.session.userIdx === undefined) {
     res.sendStatus(401);
     return;
@@ -72,6 +83,16 @@ articleRouter.post(':idx/delete', (req, res) => {
     res.sendStatus(200);
   } else {
     res.sendStatus(400);
+  }
+});
+
+articleRouter.post('/:idx/comments', (req, res) => {
+  const result = getComments(Number(req.params.idx));
+
+  if (result) {
+    res.json(getComments);
+  } else {
+    res.sendStatus(404);
   }
 });
 
