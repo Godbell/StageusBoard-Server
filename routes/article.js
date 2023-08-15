@@ -86,7 +86,7 @@ articleRouter.post('/:idx/delete', (req, res) => {
   }
 });
 
-articleRouter.post('/:idx/comments', (req, res) => {
+articleRouter.get('/:idx/comments', (req, res) => {
   const result = getComments(Number(req.params.idx));
 
   if (result) {
