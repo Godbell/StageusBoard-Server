@@ -13,7 +13,7 @@ export const isValidEmail = (email) => {
   const name = email.split('@')[0] ?? '';
   const domain = email.split('@')[1] ?? '';
 
-  return isLengthOf(name, 64) && isLengthOf(domain, 255) && regex.test(email);
+  return name.length === 64 && domain.length === 255 && regex.test(email);
 };
 
 export const isFormatOf = (
