@@ -1,17 +1,23 @@
 import express from 'express';
 import { isNullish, isNumber } from '../utils/validation.js';
+import dbConfig from '../utils/db_config.js';
+import { createConnection } from 'mariadb';
 
 const articleRouter = express.Router();
 
 articleRouter.get('/all', (req, res) => {
-  const result = true;
-  console.log('get articles');
-
-  if (result) {
-    res.sendStatus(200);
-  } else {
-    res.sendStatus(404);
-  }
+  (async () => {
+    try {
+      const connection = await createConnection(dbConfig);
+      const query =
+        'SELECT article.id as idx, title, content, article.created_at, user.nickname FROM article JOIN user ON author_id=user.id;';
+      const articles = await connection.query(query);
+      res.json(articles);
+    } catch (e) {
+      res.sendStatus(500);
+      console.log(e);
+    }
+  })();
 });
 
 articleRouter.get('/:idx', (req, res) => {
