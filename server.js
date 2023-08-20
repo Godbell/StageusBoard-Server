@@ -3,6 +3,8 @@ import userRouter from './routes/user.js';
 import expressSession from 'express-session';
 import articleRouter from './routes/article.js';
 import commentRouter from './routes/comment.js';
+import dbConfig from './utils/db_config.js';
+import { createConnection } from 'mariadb';
 
 const app = express();
 const port = 3000;
@@ -20,7 +22,15 @@ app.use(
 );
 
 app.get('/', (req, res) => {
-  res.send('Root');
+  try {
+    (async () => {
+      const connection = await createConnection(dbConfig);
+      const users = await connection.query('SELECT * FROM user');
+      res.json(users);
+    })();
+  } catch (e) {
+    res.send(e);
+  }
 });
 
 app.use('/user', userRouter);
