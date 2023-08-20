@@ -3,7 +3,7 @@ export const isNullish = (value) => {
 };
 
 export const isValidEmail = (email) => {
-  if (isNullish(email) || isEmptyString(email)) return false;
+  if (isNullish(email)) return false;
 
   const regex = new RegExp('[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$');
   const name = email.split('@')[0] ?? '';
@@ -26,7 +26,7 @@ export const isFormatOf = (
       ']+$',
   );
 
-  return regex.test(str);
+  return !isNullish(str) && regex.test(str);
 };
 
 export const isNumber = (number) => {
