@@ -5,8 +5,9 @@ import articleRouter from './routes/article.js';
 import commentRouter from './routes/comment.js';
 import dbConfig from './utils/db_config.js';
 import { createConnection } from 'mariadb';
+import asyncify from 'express-asyncify';
 
-const app = express();
+const app = asyncify(express());
 const port = 3000;
 
 app.use(express.json());
