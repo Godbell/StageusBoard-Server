@@ -1,10 +1,14 @@
 import express from 'express';
 import { isNullish, isNumber } from '../utils/validation.js';
+import dbConfig from '../utils/db_config.js';
+import { createConnection } from 'mariadb';
+import asyncify from 'express-asyncify';
 
-const commentRouter = express.Router();
+const commentRouter = asyncify(express.Router());
 
-commentRouter.put('/:idx', (req, res) => {
-  if (!isNullish(req.session.userIdx)) {
+commentRouter.put('/:idx', async (req, res) => {
+  const authorIdx = req.session.userIdx;
+  if (isNullish(authorIdx)) {
     res.sendStatus(401);
     return;
   }
@@ -21,18 +25,16 @@ commentRouter.put('/:idx', (req, res) => {
     return;
   }
 
-  const result = true;
-  console.log('edit comment');
+  const connection = await createConnection(dbConfig);
+  const query = 'UPDATE comment SET content=? WHERE id=? AND author_id=?;';
+  await connection.query(query, [content, commentIdx, authorIdx]);
 
-  if (result === true) {
-    res.sendStatus(201);
-  } else {
-    res.sendStatus(400);
-  }
+  res.sendStatus(201);
 });
 
-commentRouter.delete('/:idx', (req, res) => {
-  if (!isNullish(req.session.userIdx)) {
+commentRouter.delete('/:idx', async (req, res) => {
+  const authorIdx = req.session.userIdx;
+  if (isNullish(authorIdx)) {
     res.sendStatus(401);
     return;
   }
@@ -43,14 +45,11 @@ commentRouter.delete('/:idx', (req, res) => {
     return;
   }
 
-  const result = true;
-  console.log('delete comment');
+  const connection = await createConnection(dbConfig);
+  const query = 'DELETE FROM comment WHERE id=? AND author_id=?;';
+  await connection.query(query, [commentIdx, authorIdx]);
 
-  if (result === true) {
-    res.sendStatus(201);
-  } else {
-    res.sendStatus(400);
-  }
+  res.sendStatus(200);
 });
 
 export default commentRouter;
