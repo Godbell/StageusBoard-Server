@@ -2,25 +2,19 @@ import express from 'express';
 import { isNullish, isNumber } from '../utils/validation.js';
 import dbConfig from '../utils/db_config.js';
 import { createConnection } from 'mariadb';
+import asyncify from 'express-asyncify';
 
-const articleRouter = express.Router();
+const articleRouter = asyncify(express.Router());
 
-articleRouter.get('/all', (req, res) => {
-  (async () => {
-    try {
-      const connection = await createConnection(dbConfig);
-      const query =
-        'SELECT article.id as idx, title, content, article.created_at, user.nickname FROM article JOIN user ON author_id=user.id;';
-      const articles = await connection.query(query);
-      res.json(articles);
-    } catch (e) {
-      res.sendStatus(500);
-      console.log(e);
-    }
-  })();
+articleRouter.get('/all', async (req, res) => {
+  const connection = await createConnection(dbConfig);
+  const query =
+    'SELECT article.id as idx, title, content, article.created_at, user.nickname FROM article JOIN user ON author_id=user.id;';
+  const articles = await connection.query(query);
+  res.json(articles);
 });
 
-articleRouter.get('/:idx', (req, res) => {
+articleRouter.get('/:idx', async (req, res) => {
   const articleIdx = Number(req.params.idx);
   if (!isNumber(articleIdx) || articleIdx < 0) {
     res.sendStatus(400);
@@ -58,6 +52,7 @@ articleRouter.post('/', (req, res) => {
     return;
   }
 
+  const authorIdx = req.session.userIdx;
   const title = req.body.title;
   const content = req.body.content;
 
