@@ -20,12 +20,16 @@ export const isValidEmail = (email) => {
   return isLengthOf(name, 64) && isLengthOf(domain, 255) && regex.test(email);
 };
 
-export const isFormatOf = (str, { alphabet, korean, number, lineEndings }) => {
+export const isFormatOf = (
+  str,
+  { alphabet, koreanComplete, koreanIncomplete, number, lineEndings },
+) => {
   const regex = new RegExp(
     '^[' +
       (alphabet === true ? 'a-zA-Z' : '') +
       (number === true ? '0-9' : '') +
-      (korean === true ? '가-힣' : '') +
+      (koreanComplete === true ? '가-힣' : '') +
+      (koreanIncomplete === true ? 'ㅏ-ㅣ' : '') +
       (lineEndings === true ? '\\n\\r' : '') +
       ']+$',
   );
