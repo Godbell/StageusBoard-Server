@@ -1,9 +1,5 @@
 export const isNullish = (value) => {
-  return value === null || value === undefined;
-};
-
-export const isEmptyString = (str) => {
-  return str === '';
+  return value === null || value === undefined || value === '';
 };
 
 export const isValidEmail = (email) => {
