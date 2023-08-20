@@ -1,46 +1,63 @@
 import express from 'express';
-import {
-  addArticle,
-  deleteArticle,
-  editArticle,
-  getArticle,
-  getArticles,
-} from '../services/article.js';
-import { getComments, addComment } from '../services/comment.js';
+import { isNullish, isNumber } from '../utils/validation.js';
 
 const articleRouter = express.Router();
 
-articleRouter.get('/:idx', (req, res) => {
-  const article = getArticle(Number(req.params.idx));
+articleRouter.get('/all', (req, res) => {
+  const result = true;
+  console.log('get articles');
 
-  if (article) {
-    res.json(article);
+  if (result) {
+    res.sendStatus(200);
   } else {
     res.sendStatus(404);
   }
 });
 
-articleRouter.get('/all', (req, res) => {
-  const articles = getArticles();
+articleRouter.get('/:idx', (req, res) => {
+  const articleIdx = Number(req.params.idx);
+  if (!isNumber(articleIdx) || articleIdx < 0) {
+    res.sendStatus(400);
+    return;
+  }
 
-  if (articles) {
-    res.json(articles);
+  if (!isNumber(Number(req.params.idx))) {
+    res.sendStatus(400);
+    return;
+  }
+
+  const result = true;
+  console.log('get article');
+
+  if (result) {
+    res.sendStatus(200);
   } else {
     res.sendStatus(404);
   }
 });
 
 articleRouter.post('/', (req, res) => {
-  if (req.session.userIdx === undefined) {
+  if (!isNullish(req.session.userIdx)) {
     res.sendStatus(401);
     return;
   }
 
-  const result = addArticle({
-    authorIdx: Number(req.session.userIdx),
-    title: req.body.title,
-    content: req.body.content,
-  });
+  const articleIdx = Number(req.params.idx);
+  if (!isNumber(articleIdx) || articleIdx < 0) {
+    res.sendStatus(400);
+    return;
+  }
+
+  const title = req.body.title;
+  const content = req.body.content;
+
+  if (isNullish(title) || title.length > 100 || isNullish(content)) {
+    res.sendStatus(400);
+    return;
+  }
+
+  const result = true;
+  console.log('add article');
 
   if (result === true) {
     res.sendStatus(201);
@@ -50,17 +67,27 @@ articleRouter.post('/', (req, res) => {
 });
 
 articleRouter.put('/:idx', (req, res) => {
-  if (req.session.userIdx === undefined) {
+  if (!isNullish(req.session.userIdx)) {
     res.sendStatus(401);
     return;
   }
 
-  const result = editArticle({
-    signedUserIdx: Number(req.session.userIdx),
-    articleIdx: Number(req.params.idx),
-    title: req.body.title,
-    content: req.body.content,
-  });
+  const articleIdx = Number(req.params.idx);
+  if (!isNumber(articleIdx) || articleIdx < 0) {
+    res.sendStatus(400);
+    return;
+  }
+
+  const title = req.body.title;
+  const content = req.body.content;
+
+  if (isNullish(title) || title.length > 100 || isNullish(content)) {
+    res.sendStatus(400);
+    return;
+  }
+
+  const result = true;
+  console.log('edit article');
 
   if (result === true) {
     res.sendStatus(201);
@@ -70,45 +97,64 @@ articleRouter.put('/:idx', (req, res) => {
 });
 
 articleRouter.delete('/:idx', (req, res) => {
-  if (req.session.userIdx === undefined) {
+  if (!isNullish(req.session.userIdx)) {
     res.sendStatus(401);
     return;
   }
 
-  const result = deleteArticle(
-    Number(req.params.idx),
-    Number(req.session.userIdx),
-  );
+  const articleIdx = Number(req.params.idx);
+  if (!isNumber(articleIdx) || articleIdx < 0) {
+    res.sendStatus(400);
+    return;
+  }
+
+  const result = true;
+  console.log('delete article');
 
   if (result === true) {
     res.sendStatus(201);
   } else {
-    res.sendStatus(400);
+    res.sendStatus(404);
   }
 });
 
 articleRouter.get('/:idx/comment/all', (req, res) => {
-  const result = getComments(Number(req.params.idx));
+  const articleIdx = Number(req.params.idx);
+  if (!isNumber(articleIdx) || articleIdx < 0) {
+    res.sendStatus(400);
+    return;
+  }
 
-  if (result) {
-    res.json(result);
+  const result = true;
+  console.log('get article comment');
+
+  if (result === true) {
+    res.sendStatus(200);
   } else {
     res.sendStatus(404);
   }
 });
 
 articleRouter.post('/:idx/comment', (req, res) => {
-  if (req.session.userIdx === undefined) {
+  if (!isNullish(req.session.userIdx)) {
     res.sendStatus(401);
     return;
   }
 
-  const result = addComment({
-    authorIdx: Number(req.session.userIdx),
-    articleIdx: Number(req.body.articleIdx),
-    title: req.body.title,
-    content: req.body.content,
-  });
+  const articleIdx = Number(req.params.idx);
+  if (!isNumber(articleIdx) || articleIdx < 0) {
+    res.sendStatus(400);
+    return;
+  }
+
+  const content = req.body.content;
+  if (isNullish(content)) {
+    res.sendStatus(400);
+    return;
+  }
+
+  const result = true;
+  console.log('add comment');
 
   if (result === true) {
     res.sendStatus(201);

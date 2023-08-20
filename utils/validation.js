@@ -14,7 +14,14 @@ export const isValidEmail = (email) => {
 
 export const isFormatOf = (
   str,
-  { alphabet, koreanComplete, koreanIncomplete, number, lineEndings },
+  {
+    alphabet,
+    koreanComplete,
+    koreanIncomplete,
+    number,
+    lineEndings,
+    printables,
+  },
 ) => {
   const regex = new RegExp(
     '^[' +
@@ -23,6 +30,7 @@ export const isFormatOf = (
       (koreanComplete === true ? '가-힣' : '') +
       (koreanIncomplete === true ? 'ㅏ-ㅣ' : '') +
       (lineEndings === true ? '\\n\\r' : '') +
+      (printables === true ? ' -~' : '') +
       ']+$',
   );
 

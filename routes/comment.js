@@ -1,18 +1,28 @@
 import express from 'express';
-import { deleteComment, editComment } from '../services/comment.js';
+import { isNullish, isNumber } from '../utils/validation.js';
 
 const commentRouter = express.Router();
 
 commentRouter.put('/:idx', (req, res) => {
-  if (req.session.userIdx === undefined) {
+  if (!isNullish(req.session.userIdx)) {
     res.sendStatus(401);
     return;
   }
 
-  const result = editComment({
-    signedUserIdx: Number(req.session.userIdx),
-    content: req.body.content,
-  });
+  const commentIdx = Number(req.params.idx);
+  if (!isNumber(Number(commentIdx)) || commentIdx < 0) {
+    res.sendStatus(400);
+    return;
+  }
+
+  const content = req.body.content;
+  if (isNullish(content)) {
+    res.sendStatus(400);
+    return;
+  }
+
+  const result = true;
+  console.log('edit comment');
 
   if (result === true) {
     res.sendStatus(201);
@@ -22,15 +32,19 @@ commentRouter.put('/:idx', (req, res) => {
 });
 
 commentRouter.delete('/:idx', (req, res) => {
-  if (req.session.userIdx === undefined) {
+  if (!isNullish(req.session.userIdx)) {
     res.sendStatus(401);
     return;
   }
 
-  const result = deleteComment(
-    Number(req.params.idx),
-    Number(req.session.userIdx),
-  );
+  const commentIdx = Number(req.params.idx);
+  if (!isNumber(Number(commentIdx)) || commentIdx < 0) {
+    res.sendStatus(400);
+    return;
+  }
+
+  const result = true;
+  console.log('delete comment');
 
   if (result === true) {
     res.sendStatus(201);
