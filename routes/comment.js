@@ -8,7 +8,7 @@ import {
 
 const commentRouter = express.Router();
 
-commentRouter.get(':idx', (req, res) => {
+commentRouter.get('/:idx', (req, res) => {
   const comment = getComment(Number(req.params.idx));
 
   if (comment) {
@@ -18,7 +18,7 @@ commentRouter.get(':idx', (req, res) => {
   }
 });
 
-commentRouter.post('/add', (req, res) => {
+commentRouter.post('/', (req, res) => {
   if (req.session.userIdx === undefined) {
     res.sendStatus(401);
     return;
@@ -38,7 +38,7 @@ commentRouter.post('/add', (req, res) => {
   }
 });
 
-commentRouter.post(':idx/edit', (req, res) => {
+commentRouter.put('/:idx', (req, res) => {
   if (req.session.userIdx === undefined) {
     res.sendStatus(401);
     return;
@@ -56,7 +56,7 @@ commentRouter.post(':idx/edit', (req, res) => {
   }
 });
 
-commentRouter.post(':idx/delete', (req, res) => {
+commentRouter.delete('/:idx', (req, res) => {
   if (req.session.userIdx === undefined) {
     res.sendStatus(401);
     return;

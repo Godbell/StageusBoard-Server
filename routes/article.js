@@ -20,7 +20,7 @@ articleRouter.get('/:idx', (req, res) => {
   }
 });
 
-articleRouter.get('/list', (req, res) => {
+articleRouter.get('/all', (req, res) => {
   const articles = getArticles();
 
   if (articles) {
@@ -30,7 +30,7 @@ articleRouter.get('/list', (req, res) => {
   }
 });
 
-articleRouter.post('/add', (req, res) => {
+articleRouter.post('/', (req, res) => {
   if (req.session.userIdx === undefined) {
     res.sendStatus(401);
     return;
@@ -49,7 +49,7 @@ articleRouter.post('/add', (req, res) => {
   }
 });
 
-articleRouter.post('/:idx/edit', (req, res) => {
+articleRouter.put('/:idx', (req, res) => {
   if (req.session.userIdx === undefined) {
     res.sendStatus(401);
     return;
@@ -69,7 +69,7 @@ articleRouter.post('/:idx/edit', (req, res) => {
   }
 });
 
-articleRouter.post('/:idx/delete', (req, res) => {
+articleRouter.delete('/:idx', (req, res) => {
   if (req.session.userIdx === undefined) {
     res.sendStatus(401);
     return;

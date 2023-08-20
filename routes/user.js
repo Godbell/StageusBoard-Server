@@ -62,7 +62,7 @@ userRouter.post('/reset-password', (req, res) => {
   }
 });
 
-userRouter.post('/edit-profile', (req, res) => {
+userRouter.put('/', (req, res) => {
   if (req.session.userIdx === undefined) {
     res.sendStatus(401);
     return;
@@ -83,7 +83,7 @@ userRouter.post('/edit-profile', (req, res) => {
   }
 });
 
-userRouter.post('/delete', (req, res) => {
+userRouter.delete('/', (req, res) => {
   if (req.session.userIdx === undefined) {
     res.sendStatus(401);
     return;
@@ -98,7 +98,7 @@ userRouter.post('/delete', (req, res) => {
   }
 });
 
-userRouter.post('/signup', (req, res) => {
+userRouter.post('/', (req, res) => {
   const result = addUser({
     username: req.body.username,
     password: req.body.password,
