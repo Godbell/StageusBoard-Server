@@ -21,17 +21,17 @@ app.use(
   }),
 );
 
-app.get('/', (req, res) => {
-  try {
-    (async () => {
+app.get('/', (req, res) =>
+  (async () => {
+    try {
       const connection = await createConnection(dbConfig);
-      const users = await connection.query('SELECT * FROM user');
-      res.json(users);
-    })();
-  } catch (e) {
-    res.send(e);
-  }
-});
+      const sample = await connection.query('SELECT * FROM article');
+      res.json(sample);
+    } catch (e) {
+      res.sendStatus(500);
+    }
+  })(),
+);
 
 app.use('/user', userRouter);
 app.use('/article', articleRouter);
