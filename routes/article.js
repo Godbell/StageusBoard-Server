@@ -6,7 +6,7 @@ import {
   getArticle,
   getArticles,
 } from '../services/article.js';
-import { getComments } from '../services/comment.js';
+import { getComments, addComment } from '../services/comment.js';
 
 const articleRouter = express.Router();
 
@@ -87,13 +87,33 @@ articleRouter.delete('/:idx', (req, res) => {
   }
 });
 
-articleRouter.get('/:idx/comments', (req, res) => {
+articleRouter.get('/:idx/comment/all', (req, res) => {
   const result = getComments(Number(req.params.idx));
 
   if (result) {
     res.json(result);
   } else {
     res.sendStatus(404);
+  }
+});
+
+articleRouter.post('/:idx/comment', (req, res) => {
+  if (req.session.userIdx === undefined) {
+    res.sendStatus(401);
+    return;
+  }
+
+  const result = addComment({
+    authorIdx: Number(req.session.userIdx),
+    articleIdx: Number(req.body.articleIdx),
+    title: req.body.title,
+    content: req.body.content,
+  });
+
+  if (result === true) {
+    res.sendStatus(201);
+  } else {
+    res.sendStatus(400);
   }
 });
 
