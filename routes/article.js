@@ -21,23 +21,16 @@ articleRouter.get('/:idx', async (req, res) => {
     return;
   }
 
-  (async () => {
-    try {
-      const connection = await createConnection(dbConfig);
-      const query =
-        'SELECT article.id as idx, title, content, article.created_at, user.nickname FROM article JOIN user ON author_id=user.id WHERE article.id=?;';
-      const article = await connection.query(query, [articleIdx]);
+  const connection = await createConnection(dbConfig);
+  const query =
+    'SELECT article.id as idx, title, content, article.created_at, user.nickname FROM article JOIN user ON author_id=user.id WHERE article.id=?;';
+  const article = await connection.query(query, [articleIdx]);
 
-      if (article.length === 0) {
-        res.sendStatus(404);
-      } else {
-        res.json(article);
-      }
-    } catch (e) {
-      res.sendStatus(500);
-      console.log(e);
-    }
-  })();
+  if (article.length === 0) {
+    res.sendStatus(404);
+  } else {
+    res.json(article);
+  }
 });
 
 articleRouter.post('/', (req, res) => {
