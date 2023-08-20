@@ -1,22 +1,7 @@
 import express from 'express';
-import {
-  addComment,
-  deleteComment,
-  editComment,
-  getComment,
-} from '../services/comment.js';
+import { addComment, deleteComment, editComment } from '../services/comment.js';
 
 const commentRouter = express.Router();
-
-commentRouter.get('/:idx', (req, res) => {
-  const comment = getComment(Number(req.params.idx));
-
-  if (comment) {
-    res.json(comment);
-  } else {
-    res.sendStatus(404);
-  }
-});
 
 commentRouter.post('/', (req, res) => {
   if (req.session.userIdx === undefined) {
