@@ -22,21 +22,24 @@ app.use(
   }),
 );
 
-app.get('/', (req, res) =>
-  (async () => {
-    try {
-      const connection = await createConnection(dbConfig);
-      const sample = await connection.query('SELECT * FROM article');
-      res.json(sample);
-    } catch (e) {
-      res.sendStatus(500);
-    }
-  })(),
-);
+app.get('/', async (req, res) => {
+  const connection = await createConnection(dbConfig);
+  const sample = await connection.query('SELECT * FROM article');
+  res.json(sample);
+});
+
+app.get('/error', async (req, res) => {
+  throw new Error('test');
+});
 
 app.use('/user', userRouter);
 app.use('/article', articleRouter);
 app.use('/comment', commentRouter);
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.sendStatus(500);
+});
 
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
