@@ -6,10 +6,6 @@ export const isEmptyString = (str) => {
   return str === '';
 };
 
-export const isLengthOf = (iterable, length) => {
-  return iterable.length === length;
-};
-
 export const isValidEmail = (email) => {
   if (isNullish(email) || isEmptyString(email)) return false;
 
