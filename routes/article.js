@@ -27,19 +27,23 @@ articleRouter.get('/:idx', (req, res) => {
     return;
   }
 
-  if (!isNumber(Number(req.params.idx))) {
-    res.sendStatus(400);
-    return;
-  }
+  (async () => {
+    try {
+      const connection = await createConnection(dbConfig);
+      const query =
+        'SELECT article.id as idx, title, content, article.created_at, user.nickname FROM article JOIN user ON author_id=user.id WHERE article.id=?;';
+      const article = await connection.query(query, [articleIdx]);
 
-  const result = true;
-  console.log('get article');
-
-  if (result) {
-    res.sendStatus(200);
-  } else {
-    res.sendStatus(404);
-  }
+      if (article.length === 0) {
+        res.sendStatus(404);
+      } else {
+        res.json(article);
+      }
+    } catch (e) {
+      res.sendStatus(500);
+      console.log(e);
+    }
+  })();
 });
 
 articleRouter.post('/', (req, res) => {
