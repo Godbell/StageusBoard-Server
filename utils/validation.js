@@ -20,10 +20,7 @@ export const isValidEmail = (email) => {
   return isLengthOf(name, 64) && isLengthOf(domain, 255) && regex.test(email);
 };
 
-export const isStringOfFormat = (
-  str,
-  { alphabet, korean, number, lineEndings },
-) => {
+export const isFormatOf = (str, { alphabet, korean, number, lineEndings }) => {
   const regex = new RegExp(
     '^[' +
       (alphabet === true ? 'a-zA-Z' : '') +
