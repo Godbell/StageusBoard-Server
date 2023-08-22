@@ -1,8 +1,7 @@
 import express from 'express';
 import { isNullish, isNumber } from '../utils/validation.js';
-import dbConfig from '../utils/db_config.js';
-import { createConnection } from 'mariadb';
 import asyncify from 'express-asyncify';
+import mariadbPool from '../utils/mariadbPool.js';
 
 const commentRouter = asyncify(express.Router());
 
@@ -25,9 +24,8 @@ commentRouter.put('/:idx', async (req, res) => {
     return;
   }
 
-  const connection = await createConnection(dbConfig);
   const query = 'UPDATE comment SET content=? WHERE id=? AND author_id=?;';
-  await connection.query(query, [content, commentIdx, authorIdx]);
+  await mariadbPool.query(query, [content, commentIdx, authorIdx]);
 
   res.sendStatus(201);
 });
@@ -45,9 +43,8 @@ commentRouter.delete('/:idx', async (req, res) => {
     return;
   }
 
-  const connection = await createConnection(dbConfig);
   const query = 'DELETE FROM comment WHERE id=? AND author_id=?;';
-  await connection.query(query, [commentIdx, authorIdx]);
+  await mariadbPool.query(query, [commentIdx, authorIdx]);
 
   res.sendStatus(200);
 });

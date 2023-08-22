@@ -1,4 +1,5 @@
 import { configDotenv } from 'dotenv';
+import { createPool } from 'mariadb';
 
 configDotenv();
 
@@ -10,4 +11,6 @@ const dbConfig = {
   database: process.env.DB_NAME,
 };
 
-export default dbConfig;
+const mariadbPool = createPool(dbConfig);
+
+export default mariadbPool;

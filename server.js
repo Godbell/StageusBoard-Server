@@ -3,8 +3,7 @@ import userRouter from './routes/user.js';
 import expressSession from 'express-session';
 import articleRouter from './routes/article.js';
 import commentRouter from './routes/comment.js';
-import dbConfig from './utils/db_config.js';
-import { createConnection } from 'mariadb';
+import mariadbPool from './utils/mariadbPool.js';
 import asyncify from 'express-asyncify';
 
 const app = asyncify(express());
@@ -23,8 +22,7 @@ app.use(
 );
 
 app.get('/', async (req, res) => {
-  const connection = await createConnection(dbConfig);
-  const sample = await connection.query('SELECT * FROM article');
+  const sample = await mariadbPool.query('SELECT * FROM article');
   res.json(sample);
 });
 

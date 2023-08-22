@@ -1,8 +1,7 @@
 import express from 'express';
 import { isFormatOf, isNullish, isValidEmail } from '../utils/validation.js';
-import dbConfig from '../utils/db_config.js';
-import { createConnection } from 'mariadb';
 import asyncify from 'express-asyncify';
+import mariadbPool from '../utils/mariadbPool.js';
 
 const userRouter = asyncify(express.Router());
 
@@ -13,14 +12,12 @@ userRouter.get('/', async (req, res) => {
     return;
   }
 
-  const connection = await createConnection(dbConfig);
   const query =
     'SELECT id as idx, username, first_name, last_name, nickname, created_at, email' +
     ' FROM user' +
     ' WHERE id=?;';
-  const user = await connection.query(query, [userIdx]);
+  const user = await mariadbPool.query(query, [userIdx]);
 
-  connection.end();
   res.json(user);
 });
 
@@ -31,17 +28,14 @@ userRouter.get('/find-username', async (req, res) => {
     return;
   }
 
-  const connection = await createConnection(dbConfig);
   const query = 'SELECT username FROM user WHERE email=?;';
-  const username = await connection.query(query, [email]);
+  const username = await mariadbPool.query(query, [email]);
 
   if (username.length === 0) {
     res.sendStatus(404);
   } else {
     res.json(username);
   }
-
-  connection.end();
 });
 
 userRouter.get('/reset-password/authenicate', async (req, res) => {
@@ -51,17 +45,14 @@ userRouter.get('/reset-password/authenicate', async (req, res) => {
     return;
   }
 
-  const connection = await createConnection(dbConfig);
   const query = 'SELECT id FROM user WHERE email=?';
-  const userIdx = await connection.query(query, [email]);
+  const userIdx = await mariadbPool.query(query, [email]);
 
   if (userIdx.length === 0) {
     res.sendStatus(404);
   } else {
     req.session.pwResetUserIdx = userIdx[0];
   }
-
-  connection.end();
 });
 
 userRouter.put('/reset-password', async (req, res) => {
@@ -77,11 +68,9 @@ userRouter.put('/reset-password', async (req, res) => {
     return;
   }
 
-  const connection = await createConnection(dbConfig);
   const query = 'UPDATE user SET password=? WHERE id=?';
-  await connection.query(query, [password, userIdx]);
+  await mariadbPool.query(query, [password, userIdx]);
 
-  connection.end();
   res.sendStatus(200);
 });
 
@@ -136,8 +125,6 @@ userRouter.put('/', async (req, res) => {
     return;
   }
 
-  const connection = await createConnection(dbConfig);
-
   const query =
     'UPDATE user SET nickname=?, firstname=?, lastname=?, email=?' +
     (isNullish(password) ? '' : ' password=?') +
@@ -150,9 +137,8 @@ userRouter.put('/', async (req, res) => {
   }
   values.push(userIdx);
 
-  await connection.query(query, values);
+  await mariadbPool.query(query, values);
 
-  connection.end();
   res.sendStatus(200);
 });
 
@@ -228,18 +214,15 @@ userRouter.post('/', async (req, res) => {
     return;
   }
 
-  const connection = await createConnection(dbConfig);
-
   if (emailCount[0].count !== 0) {
     res.sendStatus(400);
-    connection.end();
     return;
   }
 
-  const updateQuery =
+  const query =
     'INSERT INTO USER (nickname, firstname, lastname, email, password) VALUES (?, ?, ?, ?, ?);';
 
-  await connection.query(updateQuery, [
+  await mariadbPool.query(query, [
     nickname,
     firstName,
     lastName,
@@ -247,7 +230,6 @@ userRouter.post('/', async (req, res) => {
     password,
   ]);
 
-  connection.end();
   res.sendStatus(200);
 });
 
@@ -266,11 +248,9 @@ userRouter.get('/username-available', async (req, res) => {
     return;
   }
 
-  const connection = await createConnection(dbConfig);
   const query = 'SELECT COUNT(*) AS count FROM user WHERE username=?';
-  const count = await connection.query(query, username);
+  const count = await mariadbPool.query(query, username);
 
-  connection.end();
   if (count[0].count === 0) {
     res.json({
       availability: true,
@@ -291,11 +271,9 @@ userRouter.get('/email-available', async (req, res) => {
     return;
   }
 
-  const connection = await createConnection(dbConfig);
   const query = 'SELECT COUNT(*) AS count FROM user WHERE email=?';
-  const count = await connection.query(query, email);
+  const count = await mariadbPool.query(query, email);
 
-  connection.end();
   if (count[0].count === 0) {
     res.json({
       availability: true,
@@ -325,9 +303,8 @@ userRouter.post('/signin', async (req, res) => {
     return;
   }
 
-  const connection = await createConnection(dbConfig);
   const query = 'SELECT id AS idx FROM user WHERE username=? AND password=?;';
-  const userIdx = await connection.query(query, [username, password]);
+  const userIdx = await mariadbPool.query(query, [username, password]);
 
   req.session.userIdx = userIdx[0].idx;
 });
