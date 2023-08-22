@@ -71,6 +71,7 @@ userRouter.put('/reset-password', async (req, res) => {
   const query = 'UPDATE user SET password=? WHERE id=?';
   await mariadbPool.query(query, [password, userIdx]);
 
+  req.session.destroy();
   res.sendStatus(200);
 });
 
