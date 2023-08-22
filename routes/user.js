@@ -317,7 +317,7 @@ userRouter.post('/signin', async (req, res) => {
   res.sendStatus(200);
 });
 
-userRouter.post('/signout', (req, res) => {
+userRouter.get('/signout', (req, res) => {
   const authorIdx = req.session.userIdx;
   if (isNullish(authorIdx)) {
     res.sendStatus(401);
