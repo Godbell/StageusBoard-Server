@@ -308,6 +308,7 @@ userRouter.post('/signin', async (req, res) => {
   const userIdx = await mariadbPool.query(query, [username, password]);
 
   req.session.userIdx = userIdx[0].idx;
+  res.sendStatus(200);
 });
 
 userRouter.post('/signout', (req, res) => {
@@ -318,7 +319,11 @@ userRouter.post('/signout', (req, res) => {
   }
 
   req.session.destroy((err) => {
-    res.sendStatus(400);
+    if (err) {
+      res.sendStatus(500);
+    } else {
+      res.sendStatus(200);
+    }
   });
 });
 
