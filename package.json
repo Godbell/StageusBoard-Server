@@ -11,6 +11,7 @@
     "express-asyncify": "2.1.1",
     "express-session": "1.17.3",
     "mariadb": "3.2.0",
+    "pg": "8.11.3",
     "prettier": "3.0.1"
   }
 }

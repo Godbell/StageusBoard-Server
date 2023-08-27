@@ -1,7 +1,7 @@
 import express from 'express';
 import { isFormatOf, isNullish, isValidEmail } from '../utils/validation.js';
 import asyncify from 'express-asyncify';
-import mariadbPool from '../utils/mariadbPool.js';
+import pgPool from '../utils/pgPool.js';
 
 const userRouter = asyncify(express.Router());
 
@@ -12,11 +12,13 @@ userRouter.get('/', async (req, res) => {
     return;
   }
 
+  const connection = await pgPool.connect();
   const query =
-    'SELECT id as idx, username, first_name, last_name, nickname, created_at, email' +
+    'SELECT idx, username, first_name, last_name, nickname, created_at, email' +
     ' FROM user' +
-    ' WHERE id=?;';
-  const user = await mariadbPool.query(query, [userIdx]);
+    ' WHERE id=$1;';
+  const user = await connection.query(query, [userIdx]);
+  connection.release();
 
   res.json(user);
 });
@@ -28,8 +30,10 @@ userRouter.get('/find-username', async (req, res) => {
     return;
   }
 
-  const query = 'SELECT username FROM user WHERE email=?;';
-  const username = await mariadbPool.query(query, [email]);
+  const connection = await pgPool.connect();
+  const query = 'SELECT username FROM user WHERE email=$1;';
+  const username = await connection.query(query, [email]);
+  connection.release();
 
   if (username.length === 0) {
     res.sendStatus(404);
@@ -45,8 +49,10 @@ userRouter.get('/reset-password/authenicate', async (req, res) => {
     return;
   }
 
+  const connection = await pgPool.connect();
   const query = 'SELECT id FROM user WHERE email=?';
-  const userIdx = await mariadbPool.query(query, [email]);
+  const userIdx = await connection.query(query, [email]);
+  connection.release();
 
   if (userIdx.length === 0) {
     res.sendStatus(404);
@@ -68,8 +74,10 @@ userRouter.put('/reset-password', async (req, res) => {
     return;
   }
 
-  const query = 'UPDATE user SET password=? WHERE id=?';
-  await mariadbPool.query(query, [password, userIdx]);
+  const connection = await pgPool.connect();
+  const query = 'UPDATE user SET password=$1 WHERE id=$2';
+  await connection.query(query, [password, userIdx]);
+  connection.release();
 
   req.session.destroy((err) => {
     if (err) {
@@ -132,19 +140,23 @@ userRouter.put('/', async (req, res) => {
     return;
   }
 
-  const query =
-    'UPDATE user SET nickname=?, firstname=?, lastname=?, email=?' +
-    (isNullish(password) ? '' : ' password=?') +
-    ' WHERE id=?';
-
+  let query = null;
   const values = [];
-  values.push(nickname, firstName, lastName, email);
-  if (isNullish(password)) {
-    values.push(password);
-  }
-  values.push(userIdx);
 
-  await mariadbPool.query(query, values);
+  const connection = await pgPool.connect();
+  if (isNullish(password)) {
+    query =
+      'UPDATE user SET nickname=$1, firstname=$2, lastname=$3, email=$4 WHERE id=$4';
+    values = [nickname, firstName, lastName, email, userIdx];
+  } else {
+    query =
+      'UPDATE user SET nickname=$1, firstname=$2, lastname=$3, email=$4 password=$5' +
+      ' WHERE id=$6';
+    values = [nickname, firstName, lastName, email, password, userIdx];
+  }
+
+  await connection.query(query, values);
+  connection.release();
 
   res.sendStatus(200);
 });
@@ -226,16 +238,20 @@ userRouter.post('/', async (req, res) => {
     return;
   }
 
-  const query =
-    'INSERT INTO USER (nickname, firstname, lastname, email, password) VALUES (?, ?, ?, ?, ?);';
+  const connection = await pgPool.connect();
 
-  await mariadbPool.query(query, [
+  const query =
+    'INSERT INTO USER (nickname, firstname, lastname, email, password)' +
+    ' VALUES ($1, $2, $3, $4, $5);';
+
+  await connection.query(query, [
     nickname,
     firstName,
     lastName,
     email,
     password,
   ]);
+  connection.release();
 
   res.sendStatus(200);
 });
@@ -255,8 +271,9 @@ userRouter.get('/username-available', async (req, res) => {
     return;
   }
 
-  const query = 'SELECT COUNT(*) AS count FROM user WHERE username=?';
-  const count = await mariadbPool.query(query, username);
+  const query = 'SELECT COUNT(*) AS count FROM user WHERE username=$1';
+  const connection = await pgPool.connect();
+  const count = await connection.query(query, username);
 
   if (count[0].count === 0) {
     res.json({
@@ -278,8 +295,10 @@ userRouter.get('/email-available', async (req, res) => {
     return;
   }
 
-  const query = 'SELECT COUNT(*) AS count FROM user WHERE email=?';
-  const count = await mariadbPool.query(query, email);
+  const connection = await pgPool.connect();
+  const query = 'SELECT COUNT(*) AS count FROM user WHERE email=$1';
+  const count = await connection.query(query, email);
+  connection.release();
 
   if (count[0].count === 0) {
     res.json({
@@ -310,8 +329,10 @@ userRouter.post('/signin', async (req, res) => {
     return;
   }
 
-  const query = 'SELECT id AS idx FROM user WHERE username=? AND password=?;';
-  const userIdx = await mariadbPool.query(query, [username, password]);
+  const connection = await pgPool.connect();
+  const query = 'SELECT idx FROM user WHERE username=$1 AND password=$2;';
+  const userIdx = await connection.query(query, [username, password]);
+  connection.release();
 
   req.session.userIdx = userIdx[0].idx;
   res.sendStatus(200);

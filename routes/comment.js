@@ -1,7 +1,7 @@
 import express from 'express';
 import { isNullish, isNumber } from '../utils/validation.js';
 import asyncify from 'express-asyncify';
-import mariadbPool from '../utils/mariadbPool.js';
+import pgPool from '../utils/pgPool.js';
 
 const commentRouter = asyncify(express.Router());
 
@@ -24,8 +24,10 @@ commentRouter.put('/:idx', async (req, res) => {
     return;
   }
 
-  const query = 'UPDATE comment SET content=? WHERE id=? AND author_id=?;';
-  await mariadbPool.query(query, [content, commentIdx, authorIdx]);
+  const connection = await pgPool.connect();
+  const query = 'UPDATE comment SET content=$1 WHERE idx=$2 AND author_idx=$3;';
+  await connection.query(query, [content, commentIdx, authorIdx]);
+  connection.release();
 
   res.sendStatus(201);
 });
@@ -43,8 +45,10 @@ commentRouter.delete('/:idx', async (req, res) => {
     return;
   }
 
-  const query = 'DELETE FROM comment WHERE id=? AND author_id=?;';
-  await mariadbPool.query(query, [commentIdx, authorIdx]);
+  const connection = await pgPool.connect();
+  const query = 'DELETE FROM comment WHERE idx=$1 AND author_idx=?;';
+  await connection.query(query, [commentIdx, authorIdx]);
+  connection.release();
 
   res.sendStatus(200);
 });

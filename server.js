@@ -3,8 +3,8 @@ import userRouter from './routes/user.js';
 import expressSession from 'express-session';
 import articleRouter from './routes/article.js';
 import commentRouter from './routes/comment.js';
-import mariadbPool from './utils/mariadbPool.js';
 import asyncify from 'express-asyncify';
+import pgPool from './utils/pgPool.js';
 
 const app = asyncify(express());
 const port = 3000;
@@ -22,7 +22,8 @@ app.use(
 );
 
 app.get('/', async (req, res) => {
-  const sample = await mariadbPool.query('SELECT * FROM article');
+  const connection = await pgPool.connect();
+  const sample = await connection.query('SELECT * FROM article');
   res.json(sample);
 });
 
