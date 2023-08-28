@@ -15,4 +15,8 @@ pgPool.on('error', (err, client) => {
   console.error('Unexpected Error on PG Client.', err);
 });
 
+console.log(
+  `Created PG Pool to ${dbConfig.host}:${dbConfig.port} with user ${dbConfig.user}`,
+);
+
 export default pgPool;

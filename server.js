@@ -5,9 +5,20 @@ import articleRouter from './routes/article.js';
 import commentRouter from './routes/comment.js';
 import asyncify from 'express-asyncify';
 import pgPool from './utils/pgPool.js';
+import https from 'https';
+import fs from 'fs';
+import { configDotenv } from 'dotenv';
+
+configDotenv();
 
 const app = asyncify(express());
-const port = 3000;
+const httpPort = 3000;
+const httpsPort = 3443;
+const sslOptions = {
+  key: fs.readFileSync(process.env.SSL_KEY_LOCATION),
+  cert: fs.readFileSync(process.env.SSL_CRT_LOCATION),
+  ca: fs.readFileSync(process.env.SSL_CA_LOCATION),
+};
 
 app.use(express.json());
 app.use(
@@ -40,6 +51,8 @@ app.use((err, req, res, next) => {
   res.sendStatus(500);
 });
 
-app.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
+app.listen(httpPort, () => {
+  console.log(`Server is listening on port ${httpPort}`);
 });
+
+https.createServer(sslOptions, app).listen(httpsPort);
