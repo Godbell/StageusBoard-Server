@@ -25,7 +25,8 @@ commentRouter.put('/:idx', async (req, res) => {
   }
 
   const connection = await pgPool.connect();
-  const query = 'UPDATE comment SET content=$1 WHERE idx=$2 AND author_idx=$3;';
+  const query =
+    'UPDATE backend.comment SET content=$1 WHERE idx=$2 AND author_idx=$3;';
   await connection.query(query, [content, commentIdx, authorIdx]);
   connection.release();
 
@@ -46,7 +47,7 @@ commentRouter.delete('/:idx', async (req, res) => {
   }
 
   const connection = await pgPool.connect();
-  const query = 'DELETE FROM comment WHERE idx=$1 AND author_idx=?;';
+  const query = 'DELETE FROM backend.comment WHERE idx=$1 AND author_idx=?;';
   await connection.query(query, [commentIdx, authorIdx]);
   connection.release();
 
