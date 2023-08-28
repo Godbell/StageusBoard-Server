@@ -32,6 +32,14 @@ app.use(
   }),
 );
 
+app.get('*', (req, res, next) => {
+  if (req.protocol === 'https') {
+    next();
+  } else {
+    res.redirect(`https://${req.hostname}:${httpsPort}/${req.url}`);
+  }
+});
+
 app.get('/', async (req, res) => {
   const connection = await pgPool.connect();
   const sample = await connection.query('SELECT * FROM article');
