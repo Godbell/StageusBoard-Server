@@ -43,7 +43,10 @@ app.get('*', (req, res, next) => {
 app.get('/', async (req, res) => {
   const connection = await pgPool.connect();
   const sample = await connection.query('SELECT * FROM article');
-  res.json(sample);
+  res.json({
+    ...sample,
+    status: 200,
+  });
 });
 
 app.get('/error', async (req, res) => {
