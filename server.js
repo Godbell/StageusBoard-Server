@@ -36,7 +36,7 @@ app.get('*', (req, res, next) => {
   if (req.protocol === 'https') {
     next();
   } else {
-    res.redirect(`https://${req.hostname}:${httpsPort}/${req.url}`);
+    res.redirect(`https://${req.hostname}:${httpsPort}${req.url}`);
   }
 });
 
