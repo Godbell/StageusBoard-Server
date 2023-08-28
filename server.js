@@ -14,11 +14,15 @@ configDotenv();
 const app = asyncify(express());
 const httpPort = 3000;
 const httpsPort = 3443;
-const sslOptions = {
-  key: fs.readFileSync(process.env.SSL_KEY_LOCATION),
-  cert: fs.readFileSync(process.env.SSL_CRT_LOCATION),
-  ca: fs.readFileSync(process.env.SSL_CA_LOCATION),
-};
+
+const sslOptions =
+  process.env.NODE_ENV === 'production'
+    ? {
+        key: fs.readFileSync(process.env.SSL_KEY_LOCATION),
+        cert: fs.readFileSync(process.env.SSL_CRT_LOCATION),
+        ca: fs.readFileSync(process.env.SSL_CA_LOCATION),
+      }
+    : null;
 
 app.use(express.json());
 app.use(
@@ -32,21 +36,19 @@ app.use(
   }),
 );
 
-app.get('*', (req, res, next) => {
-  if (req.protocol === 'https') {
-    next();
-  } else {
-    res.redirect(`https://${req.hostname}:${httpsPort}${req.url}`);
-  }
-});
+process.env.NODE_ENV === 'production' ??
+  app.get('*', (req, res, next) => {
+    if (req.protocol === 'https') {
+      next();
+    } else {
+      res.redirect(`https://${req.hostname}:${httpsPort}${req.url}`);
+    }
+  });
 
 app.get('/', async (req, res) => {
   const connection = await pgPool.connect();
   const sample = await connection.query('SELECT * FROM backend.article');
-  res.json({
-    ...sample,
-    status: 200,
-  });
+  res.json(sample.rows);
 });
 
 app.get('/error', async (req, res) => {
@@ -66,6 +68,7 @@ app.listen(httpPort, () => {
   console.log(`Server is listening on port ${httpPort}`);
 });
 
-https.createServer(sslOptions, app).listen(httpsPort, () => {
-  console.log(`Server is listening on port ${httpsPort}`);
-});
+process.env.NODE_ENV === 'production' ??
+  https.createServer(sslOptions, app).listen(httpsPort, () => {
+    console.log(`Server is listening on port ${httpsPort}`);
+  });
