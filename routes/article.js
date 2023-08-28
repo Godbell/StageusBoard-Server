@@ -8,11 +8,12 @@ const articleRouter = asyncify(express.Router());
 articleRouter.get('/all', async (req, res) => {
   const connection = await pgPool.connect();
   const query =
-    'SELECT backend.article.idx, title, content, backend.article.created_at, backend.user.nickname' +
+    'SELECT backend.article.idx, title, content,' +
+    " TO_CHAR(backend.article.created_at, 'YYYY-MM-DD HH24:MI:SS'), backend.user.nickname" +
     ' FROM backend.article' +
     ' JOIN backend.user' +
     ' ON author_idx=backend.user.idx;';
-  const articles = await connection.query(query);
+  const articles = (await connection.query(query)).rows;
   connection.release();
 
   res.json(articles);
@@ -28,13 +29,13 @@ articleRouter.get('/:idx', async (req, res) => {
   const connection = await pgPool.connect();
   const query =
     'SELECT backend.article.idx, title, content,' +
-    ' to_char(backend.article.created_at, "YYYY-MM-DD HH24:MI:SS")' +
+    " TO_CHAR(backend.article.created_at, 'YYYY-MM-DD HH24:MI:SS')" +
     ' AS created_at, backend.user.nickname' +
     ' FROM backend.article' +
     ' JOIN backend.user' +
     ' ON author_idx=backend.user.idx' +
     ' WHERE backend.article.idx=$1;';
-  const article = await connection.query(query, [articleIdx]);
+  const article = (await connection.query(query, [articleIdx])).rows[0];
   connection.release();
 
   if (article.length === 0) {
@@ -48,12 +49,6 @@ articleRouter.post('/', async (req, res) => {
   const authorIdx = req.session.userIdx;
   if (isNullish(authorIdx)) {
     res.sendStatus(401);
-    return;
-  }
-
-  const articleIdx = Number(req.params.idx);
-  if (!isNumber(articleIdx) || articleIdx < 0) {
-    res.sendStatus(400);
     return;
   }
 
@@ -103,11 +98,7 @@ articleRouter.put('/:idx', async (req, res) => {
   await connection.query(query, [title, content, articleIdx, authorIdx]);
   connection.release();
 
-  if (result === true) {
-    res.sendStatus(201);
-  } else {
-    res.sendStatus(400);
-  }
+  res.sendStatus(200);
 });
 
 articleRouter.delete('/:idx', async (req, res) => {
@@ -141,7 +132,7 @@ articleRouter.get('/:idx/comment/all', async (req, res) => {
   const connection = await pgPool.connect();
   const query =
     'SELECT backend.comment.idx, content, nickname,' +
-    ' to_char(backend.article.created_at, "YYYY-MM-DD HH24:MI:SS") AS created_at' +
+    " TO_CHAR(backend.article.created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at" +
     ' FROM backend.comment' +
     ' JOIN backend.user' +
     ' ON author_idx=backend.user.idx' +

@@ -14,35 +14,21 @@ userRouter.get('/', async (req, res) => {
 
   const connection = await pgPool.connect();
   const query =
-    'SELECT idx, username, first_name, last_name, nickname, created_at, email' +
+    "SELECT idx, username, first_name, last_name, nickname, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at, email" +
     ' FROM backend.user' +
-    ' WHERE id=$1;';
-  const user = await connection.query(query, [userIdx]);
+    ' WHERE idx=$1;';
+  const user = (await connection.query(query, [userIdx])).rows[0];
   connection.release();
 
-  res.json(backend.user);
-});
-
-userRouter.get('/find-username', async (req, res) => {
-  const email = req.body.email;
-  if (!isValidEmail(email)) {
-    res.sendStatus(400);
+  if (!user) {
+    res.sendStatus(404);
     return;
   }
 
-  const connection = await pgPool.connect();
-  const query = 'SELECT username FROM backend.user WHERE email=$1;';
-  const username = await connection.query(query, [email]);
-  connection.release();
-
-  if (username.length === 0) {
-    res.sendStatus(404);
-  } else {
-    res.json(username);
-  }
+  res.json(user);
 });
 
-userRouter.get('/reset-password/authenicate', async (req, res) => {
+userRouter.get('/find-username', async (req, res) => {
   const email = req.query.email;
   if (!isValidEmail(email)) {
     res.sendStatus(400);
@@ -50,18 +36,38 @@ userRouter.get('/reset-password/authenicate', async (req, res) => {
   }
 
   const connection = await pgPool.connect();
-  const query = 'SELECT id FROM backend.user WHERE email=?';
-  const userIdx = await connection.query(query, [email]);
+  const query = 'SELECT username FROM backend.user WHERE email=$1;';
+  const username = (await connection.query(query, [email])).rows;
+  connection.release();
+
+  if (username.length === 0) {
+    res.sendStatus(404);
+  } else {
+    res.send(username[0].username);
+  }
+});
+
+userRouter.get('/password/authenticate', async (req, res) => {
+  const email = req.query.email;
+  if (!isValidEmail(email)) {
+    res.sendStatus(400);
+    return;
+  }
+
+  const connection = await pgPool.connect();
+  const query = 'SELECT idx FROM backend.user WHERE email=$1';
+  const userIdx = (await connection.query(query, [email])).rows;
   connection.release();
 
   if (userIdx.length === 0) {
     res.sendStatus(404);
   } else {
-    req.session.pwResetUserIdx = userIdx[0];
+    req.session.pwResetUserIdx = userIdx[0].idx;
+    res.sendStatus(200);
   }
 });
 
-userRouter.put('/reset-password', async (req, res) => {
+userRouter.put('/password', async (req, res) => {
   const userIdx = req.session.pwResetUserIdx;
   if (isNullish(userIdx)) {
     res.sendStatus(401);
@@ -71,21 +77,14 @@ userRouter.put('/reset-password', async (req, res) => {
   const password = req.body.password;
   if (!isFormatOf(password, { printables: true }) || password.length > 20) {
     res.sendStatus(400);
-    return;
   }
 
   const connection = await pgPool.connect();
-  const query = 'UPDATE backend.user SET password=$1 WHERE id=$2';
+  const query = 'UPDATE backend.user SET password=$1 WHERE idx=$2';
   await connection.query(query, [password, userIdx]);
   connection.release();
 
-  req.session.destroy((err) => {
-    if (err) {
-      res.sendStatus(500);
-    } else {
-      res.sendStatus(200);
-    }
-  });
+  req.session.destroy();
   res.sendStatus(200);
 });
 
@@ -146,13 +145,13 @@ userRouter.put('/', async (req, res) => {
   const connection = await pgPool.connect();
   if (isNullish(password)) {
     query =
-      'UPDATE backend.user SET nickname=$1, firstname=$2, lastname=$3, email=$4 WHERE id=$4';
-    values = [nickname, firstName, lastName, email, userIdx];
+      'UPDATE backend.user SET nickname=$1, first_name=$2, last_name=$3, email=$4 WHERE idx=$4';
+    values.push(nickname, firstName, lastName, email, userIdx);
   } else {
     query =
-      'UPDATE backend.user SET nickname=$1, firstname=$2, lastname=$3, email=$4 password=$5' +
-      ' WHERE id=$6';
-    values = [nickname, firstName, lastName, email, password, userIdx];
+      'UPDATE backend.user SET nickname=$1, first_name=$2, last_name=$3, email=$4, password=$5' +
+      ' WHERE idx=$6';
+    values.push(nickname, firstName, lastName, email, password, userIdx);
   }
 
   await connection.query(query, values);
@@ -175,6 +174,7 @@ userRouter.delete('/', (req, res) => {
   } else {
     res.sendStatus(404);
   }
+  return;
 });
 
 userRouter.post('/', async (req, res) => {
@@ -232,18 +232,14 @@ userRouter.post('/', async (req, res) => {
     return;
   }
 
-  if (emailCount[0].count !== 0) {
-    res.sendStatus(400);
-    return;
-  }
-
   const connection = await pgPool.connect();
 
   const query =
-    'INSERT INTO USER (nickname, firstname, lastname, email, password)' +
-    ' VALUES ($1, $2, $3, $4, $5);';
+    'INSERT INTO backend.user (username, nickname, first_name, last_name, email, password)' +
+    ' VALUES ($1, $2, $3, $4, $5, $6);';
 
   await connection.query(query, [
+    username,
     nickname,
     firstName,
     lastName,
@@ -255,7 +251,7 @@ userRouter.post('/', async (req, res) => {
   res.sendStatus(200);
 });
 
-userRouter.get('/username-available', async (req, res) => {
+userRouter.get('/username/availability', async (req, res) => {
   const username = req.query.username;
   const isUsernameValid =
     isFormatOf(username, {
@@ -272,9 +268,9 @@ userRouter.get('/username-available', async (req, res) => {
 
   const query = 'SELECT COUNT(*) AS count FROM backend.user WHERE username=$1';
   const connection = await pgPool.connect();
-  const count = await connection.query(query, username);
+  const count = await connection.query(query, [username]);
 
-  if (count[0].count === 0) {
+  if (Number(count.rows[0].count) === 0) {
     res.json({
       availability: true,
     });
@@ -285,7 +281,7 @@ userRouter.get('/username-available', async (req, res) => {
   }
 });
 
-userRouter.get('/email-available', async (req, res) => {
+userRouter.get('/email/availability', async (req, res) => {
   const email = req.query.email;
   const isEmailValid = isValidEmail(email);
 
@@ -296,10 +292,10 @@ userRouter.get('/email-available', async (req, res) => {
 
   const connection = await pgPool.connect();
   const query = 'SELECT COUNT(*) AS count FROM backend.user WHERE email=$1';
-  const count = await connection.query(query, email);
+  const count = Number((await connection.query(query, [email])).rows[0].count);
   connection.release();
 
-  if (count[0].count === 0) {
+  if (count === 0) {
     res.json({
       availability: true,
     });
@@ -331,10 +327,14 @@ userRouter.post('/signin', async (req, res) => {
   const connection = await pgPool.connect();
   const query =
     'SELECT idx FROM backend.user WHERE username=$1 AND password=$2;';
-  const userIdx = await connection.query(query, [username, password]);
+  const userIdx = (await connection.query(query, [username, password])).rows[0];
   connection.release();
 
-  req.session.userIdx = userIdx[0].idx;
+  if (!userIdx) {
+    res.sendStatus(404);
+  }
+
+  req.session.userIdx = userIdx.idx;
   res.sendStatus(200);
 });
 
@@ -345,13 +345,9 @@ userRouter.get('/signout', (req, res) => {
     return;
   }
 
-  req.session.destroy((err) => {
-    if (err) {
-      res.sendStatus(500);
-    } else {
-      res.sendStatus(200);
-    }
-  });
+  req.session.destroy();
+
+  res.sendStatus(200);
 });
 
 export default userRouter;
