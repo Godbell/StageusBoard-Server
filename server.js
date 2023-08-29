@@ -36,7 +36,7 @@ app.use(
   }),
 );
 
-process.env.NODE_ENV === 'production' ??
+process.env.NODE_ENV === 'production' &&
   app.get('*', (req, res, next) => {
     if (req.protocol === 'https') {
       next();
@@ -68,7 +68,7 @@ app.listen(httpPort, () => {
   console.log(`Server is listening on port ${httpPort}`);
 });
 
-process.env.NODE_ENV === 'production' ??
+process.env.NODE_ENV === 'production' &&
   https.createServer(sslOptions, app).listen(httpsPort, () => {
     console.log(`Server is listening on port ${httpsPort}`);
   });
