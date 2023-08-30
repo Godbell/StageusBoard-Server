@@ -12,7 +12,8 @@ articleRouter.get('/all', async (req, res) => {
     " TO_CHAR(backend.article.created_at, 'YYYY-MM-DD HH24:MI:SS'), backend.user.nickname" +
     ' FROM backend.article' +
     ' JOIN backend.user' +
-    ' ON author_idx=backend.user.idx;';
+    ' ON author_idx=backend.user.idx' +
+    ' WHERE backend.user.is_deleted=FALSE;';
   const articles = (await connection.query(query)).rows;
   connection.release();
 
@@ -34,11 +35,11 @@ articleRouter.get('/:idx', async (req, res) => {
     ' FROM backend.article' +
     ' JOIN backend.user' +
     ' ON author_idx=backend.user.idx' +
-    ' WHERE backend.article.idx=$1;';
+    ' WHERE backend.article.idx=$1 AND backend.article.is_deleted=FALSE;';
   const article = (await connection.query(query, [articleIdx])).rows[0];
   connection.release();
 
-  if (article.length === 0) {
+  if (article) {
     res.sendStatus(404);
   } else {
     res.json(article);
@@ -115,7 +116,8 @@ articleRouter.delete('/:idx', async (req, res) => {
   }
 
   const connection = await pgPool.connect();
-  const query = 'DELETE FROM backend.article WHERE idx=$1 AND author_idx=$2;';
+  const query =
+    'UPDATE backend.article SET is_deleted=TRUE WHERE idx=$1 AND author_idx=$2;';
   await connection.query(query, [articleIdx, authorIdx]);
   connection.release();
 

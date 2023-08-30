@@ -16,7 +16,7 @@ userRouter.get('/', async (req, res) => {
   const query =
     "SELECT idx, username, first_name, last_name, nickname, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at, email" +
     ' FROM backend.user' +
-    ' WHERE idx=$1;';
+    ' WHERE idx=$1 AND is_deleted=FALSE;';
   const user = (await connection.query(query, [userIdx])).rows[0];
   connection.release();
 
@@ -160,21 +160,19 @@ userRouter.put('/', async (req, res) => {
   res.sendStatus(200);
 });
 
-userRouter.delete('/', (req, res) => {
+userRouter.delete('/', async (req, res) => {
   const authorIdx = req.session.userIdx;
   if (isNullish(authorIdx)) {
     res.sendStatus(401);
     return;
   }
 
-  const result = true;
+  const connection = await pgPool.connect();
+  const query = 'UPDATE backend.user SET is_deleted=TRUE WHERE idx=$1;';
+  await connection.query(query, [authorIdx]);
+  req.session.destroy();
 
-  if (result === true) {
-    res.sendStatus(200);
-  } else {
-    res.sendStatus(404);
-  }
-  return;
+  res.sendStatus(200);
 });
 
 userRouter.post('/', async (req, res) => {
