@@ -46,3 +46,13 @@ export const isFormatOf = (
 export const isNumber = (number) => {
   return typeof number === 'number' && !isNaN(number);
 };
+
+export const isValidUuid = (string) => {
+  if (isNullish(string) || typeof string !== 'string') return false;
+
+  const regex = new RegExp(
+    '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+  );
+
+  return regex.test(string);
+};
