@@ -157,7 +157,7 @@ articleRouter.post('/:idx/comment', async (req, res) => {
     isNumber(depth) &&
     depth >= 0 &&
     !isNullish(content) &&
-    (ref === null || isValidUuid(ref));
+    (ref === null || ref.reduce((prev, cur) => prev && isValidUuid(cur)));
   if (isInputValid) {
     res.sendStatus(400);
     return;
@@ -166,15 +166,13 @@ articleRouter.post('/:idx/comment', async (req, res) => {
   const connection = await pgPool.connect();
 
   const currentCommentsQuery = `SELECT data FROM backend.comment WHERE article_idx=$1;`;
-  const comments = (await connection.query(currentCommentsQuery, [articleIdx]))
-    .rows[0] ?? {
-    comments: [],
-  };
+  const comments =
+    (await connection.query(currentCommentsQuery, [articleIdx])).rows[0] ?? {};
 
-  if (!JSON.stringify(comments).includes(`"id": "${ref}"`)) {
-    res.sendStatus(400);
-    return;
-  }
+  comments
+
+  const updateCommentQuery = `UPDATE backend.comment SET data=$1 WHERE article_idx=$2;`;
+  await connection.query(updateCommentQuery, [JSON.stringify(comments)]);
 
   connection.release();
 

@@ -26,7 +26,7 @@ commentRouter.put('/:idx', async (req, res) => {
 
   const connection = await pgPool.connect();
   const query =
-    'UPDATE backend.comment SET content=$1 WHERE idx=$2 AND author_idx=$3;';
+    `UPDATE backend.comment SET data->comments = data->comments ||`;
   await connection.query(query, [content, commentIdx, authorIdx]);
   connection.release();
 
