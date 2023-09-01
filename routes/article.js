@@ -134,11 +134,11 @@ articleRouter.get('/:idx/comment/all', async (req, res) => {
   }
 
   const connection = await pgPool.connect();
-  const query = `SELECT data AS comments FROM backend.comment WHERE article_idx=$1;`;
-  const comments = (await connection.query(query, [articleIdx])).rows[0];
+  const query = `SELECT data FROM backend.comment WHERE article_idx=$1;`;
+  const comments = (await connection.query(query, [articleIdx])).rows[0]?.data;
   connection.release();
 
-  res.json(comments ?? []);
+  res.json(comments ?? {});
 });
 
 articleRouter.post('/:idx/comment', async (req, res) => {
@@ -150,15 +150,11 @@ articleRouter.post('/:idx/comment', async (req, res) => {
 
   const articleIdx = Number(req.params.idx);
   const content = req.body.content;
-  const ref = req.body.ref ?? null;
+  const ref = req.body.ref ?? [];
   const isInputValid =
-    isNumber(articleIdx) &&
-    articleIdx >= 0 &&
-    isNumber(depth) &&
-    depth >= 0 &&
-    !isNullish(content) &&
-    (ref === null || ref.reduce((prev, cur) => prev && isValidUuid(cur)));
-  if (isInputValid) {
+    isNumber(articleIdx) && isNumber(articleIdx) >= 0 && !isNullish(content);
+
+  if (!isInputValid) {
     res.sendStatus(400);
     return;
   }
@@ -167,12 +163,26 @@ articleRouter.post('/:idx/comment', async (req, res) => {
 
   const currentCommentsQuery = `SELECT data FROM backend.comment WHERE article_idx=$1;`;
   const comments =
-    (await connection.query(currentCommentsQuery, [articleIdx])).rows[0] ?? {};
+    (await connection.query(currentCommentsQuery, [articleIdx])).rows[0]
+      ?.data ?? {};
 
-  comments
+  const targetComment =
+    ref.reduce((prev, curr) => prev[curr], comments) ?? comments;
+
+  targetComment[v4()] = {
+    author_idx: authorIdx,
+    created_idx: new Date(Date.now() + new Date(Date.now()).getTimezoneOffset())
+      .toISOString()
+      .replace('T', ' ')
+      .split('.')[0],
+    content: content,
+  };
 
   const updateCommentQuery = `UPDATE backend.comment SET data=$1 WHERE article_idx=$2;`;
-  await connection.query(updateCommentQuery, [JSON.stringify(comments)]);
+  await connection.query(updateCommentQuery, [
+    JSON.stringify(comments),
+    articleIdx,
+  ]);
 
   connection.release();
 
