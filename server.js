@@ -4,7 +4,7 @@ import expressSession from 'express-session';
 import articleRouter from './routes/article.js';
 import commentRouter from './routes/comment.js';
 import asyncify from 'express-asyncify';
-import pgPool from './utils/pgPool.js';
+import pgPool, { pgQuery } from './utils/pgPool.js';
 import https from 'https';
 import fs from 'fs';
 import { configDotenv } from 'dotenv';
@@ -46,9 +46,8 @@ process.env.NODE_ENV === 'production' &&
   });
 
 app.get('/', async (req, res) => {
-  const connection = await pgPool.connect();
-  const sample = await connection.query('SELECT * FROM backend.article');
-  res.json(sample.rows);
+  const sample = (await pgQuery(`SELECT * from backend.article;`)).rows;
+  res.json(sample);
 });
 
 app.get('/error', async (req, res) => {
