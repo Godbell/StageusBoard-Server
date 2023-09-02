@@ -37,9 +37,9 @@ articleRouter.get('/:idx', async (req, res) => {
   const article = (await pgQuery(query, [articleIdx])).rows[0];
 
   if (article) {
-    res.sendStatus(404);
-  } else {
     res.json(article);
+  } else {
+    res.sendStatus(404);
   }
 });
 
@@ -89,7 +89,7 @@ articleRouter.put('/:idx', async (req, res) => {
   const query =
     'UPDATE backend.article SET title=$1, content=$2' +
     ' WHERE idx=$3' +
-    ' AND author_idx=$4;';
+    ' AND author_idx=$4; WHERE is_deleted=FALSE;';
   await pgQuery(query, [title, content, articleIdx, authorIdx]);
 
   res.sendStatus(200);
