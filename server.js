@@ -4,7 +4,7 @@ import expressSession from 'express-session';
 import articleRouter from './routes/article.js';
 import commentRouter from './routes/comment.js';
 import asyncify from 'express-asyncify';
-import pgPool, { pgQuery } from './utils/pgPool.js';
+import pgQuery from './utils/pgPool.js';
 import https from 'https';
 import fs from 'fs';
 import { configDotenv } from 'dotenv';
