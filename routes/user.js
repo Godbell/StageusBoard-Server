@@ -1,7 +1,7 @@
 import express from 'express';
 import { isFormatOf, isNullish, isValidEmail } from '../utils/validation.js';
 import asyncify from 'express-asyncify';
-import pgPool from '../utils/pgPool.js';
+import pgQuery from '../utils/pgPool.js';
 
 const userRouter = asyncify(express.Router());
 
@@ -12,13 +12,11 @@ userRouter.get('/', async (req, res) => {
     return;
   }
 
-  const connection = await pgPool.connect();
   const query =
     "SELECT idx, username, first_name, last_name, nickname, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at, email" +
     ' FROM backend.user' +
     ' WHERE idx=$1 AND is_deleted=FALSE;';
-  const user = (await connection.query(query, [userIdx])).rows[0];
-  connection.release();
+  const user = (await pgQuery(query, [userIdx])).rows[0];
 
   if (!user) {
     res.sendStatus(404);
@@ -35,10 +33,8 @@ userRouter.get('/find-username', async (req, res) => {
     return;
   }
 
-  const connection = await pgPool.connect();
   const query = 'SELECT username FROM backend.user WHERE email=$1;';
-  const username = (await connection.query(query, [email])).rows;
-  connection.release();
+  const username = (await pgQuery(query, [email])).rows;
 
   if (username.length === 0) {
     res.sendStatus(404);
@@ -54,10 +50,8 @@ userRouter.get('/password/authenticate', async (req, res) => {
     return;
   }
 
-  const connection = await pgPool.connect();
   const query = 'SELECT idx FROM backend.user WHERE email=$1';
-  const userIdx = (await connection.query(query, [email])).rows;
-  connection.release();
+  const userIdx = (await pgQuery(query, [email])).rows;
 
   if (userIdx.length === 0) {
     res.sendStatus(404);
@@ -79,10 +73,8 @@ userRouter.put('/password', async (req, res) => {
     res.sendStatus(400);
   }
 
-  const connection = await pgPool.connect();
   const query = 'UPDATE backend.user SET password=$1 WHERE idx=$2';
-  await connection.query(query, [password, userIdx]);
-  connection.release();
+  await pgQuery(query, [password, userIdx]);
 
   req.session.destroy();
   res.sendStatus(200);
@@ -142,7 +134,6 @@ userRouter.put('/', async (req, res) => {
   let query = null;
   const values = [];
 
-  const connection = await pgPool.connect();
   if (isNullish(password)) {
     query =
       'UPDATE backend.user SET nickname=$1, first_name=$2, last_name=$3, email=$4 WHERE idx=$4';
@@ -154,8 +145,7 @@ userRouter.put('/', async (req, res) => {
     values.push(nickname, firstName, lastName, email, password, userIdx);
   }
 
-  await connection.query(query, values);
-  connection.release();
+  await pgQuery(query, values);
 
   res.sendStatus(200);
 });
@@ -167,10 +157,8 @@ userRouter.delete('/', async (req, res) => {
     return;
   }
 
-  const connection = await pgPool.connect();
   const query = 'UPDATE backend.user SET is_deleted=TRUE WHERE idx=$1;';
-  await connection.query(query, [authorIdx]);
-  req.session.destroy();
+  await pgQuery(query, [authorIdx]);
 
   res.sendStatus(200);
 });
@@ -230,13 +218,11 @@ userRouter.post('/', async (req, res) => {
     return;
   }
 
-  const connection = await pgPool.connect();
-
   const query =
     'INSERT INTO backend.user (username, nickname, first_name, last_name, email, password)' +
     ' VALUES ($1, $2, $3, $4, $5, $6);';
 
-  await connection.query(query, [
+  await pgQuery(query, [
     username,
     nickname,
     firstName,
@@ -244,7 +230,6 @@ userRouter.post('/', async (req, res) => {
     email,
     password,
   ]);
-  connection.release();
 
   res.sendStatus(200);
 });
@@ -265,8 +250,7 @@ userRouter.get('/username/availability', async (req, res) => {
   }
 
   const query = 'SELECT COUNT(*) AS count FROM backend.user WHERE username=$1';
-  const connection = await pgPool.connect();
-  const count = await connection.query(query, [username]);
+  const count = await pgQuery(query, [username]);
 
   if (Number(count.rows[0].count) === 0) {
     res.json({
@@ -288,10 +272,8 @@ userRouter.get('/email/availability', async (req, res) => {
     return;
   }
 
-  const connection = await pgPool.connect();
   const query = 'SELECT COUNT(*) AS count FROM backend.user WHERE email=$1';
-  const count = Number((await connection.query(query, [email])).rows[0].count);
-  connection.release();
+  const count = Number((await pgQuery(query, [email])).rows[0].count);
 
   if (count === 0) {
     res.json({
@@ -322,11 +304,9 @@ userRouter.post('/signin', async (req, res) => {
     return;
   }
 
-  const connection = await pgPool.connect();
   const query =
     'SELECT idx FROM backend.user WHERE username=$1 AND password=$2;';
-  const userIdx = (await connection.query(query, [username, password])).rows[0];
-  connection.release();
+  const userIdx = (await pgQuery(query, [username, password])).rows[0];
 
   if (!userIdx) {
     res.sendStatus(404);

@@ -1,7 +1,7 @@
 import express from 'express';
 import { isNullish, isNumber } from '../utils/validation.js';
 import asyncify from 'express-asyncify';
-import pgPool from '../utils/pgPool.js';
+import pgQuery from '../utils/pgPool.js';
 
 const commentRouter = asyncify(express.Router());
 
@@ -24,12 +24,9 @@ commentRouter.put('/', async (req, res) => {
     return;
   }
 
-  const connection = await pgPool.connect();
-
   const currentCommentsQuery = `SELECT data FROM backend.comment WHERE article_idx=$1;`;
   const comments =
-    (await connection.query(currentCommentsQuery, [articleIdx])).rows[0]
-      ?.data ?? {};
+    (await pgQuery(currentCommentsQuery, [articleIdx])).rows[0]?.data ?? {};
 
   const targetComment =
     ref.reduce(
@@ -45,12 +42,7 @@ commentRouter.put('/', async (req, res) => {
   targetComment.content = content;
 
   const updateCommentQuery = `UPDATE backend.comment SET data=$1 WHERE article_idx=$2;`;
-  await connection.query(updateCommentQuery, [
-    JSON.stringify(comments),
-    articleIdx,
-  ]);
-
-  connection.release();
+  await pgQuery(updateCommentQuery, [JSON.stringify(comments), articleIdx]);
 
   res.sendStatus(201);
 });
@@ -74,12 +66,9 @@ commentRouter.delete('/', async (req, res) => {
     return;
   }
 
-  const connection = await pgPool.connect();
-
   const currentCommentsQuery = `SELECT data FROM backend.comment WHERE article_idx=$1;`;
   const comments =
-    (await connection.query(currentCommentsQuery, [articleIdx])).rows[0]
-      ?.data ?? {};
+    (await pgQuery(currentCommentsQuery, [articleIdx])).rows[0]?.data ?? {};
 
   const targetCommentLocation =
     ref.reduce(
@@ -95,19 +84,13 @@ commentRouter.delete('/', async (req, res) => {
   delete targetCommentLocation[commentId];
 
   const updateCommentQuery = `UPDATE backend.comment SET data=$1 WHERE article_idx=$2;`;
-  await connection.query(updateCommentQuery, [
-    JSON.stringify(comments),
-    articleIdx,
-  ]);
-
-  connection.release();
+  await pgQuery(updateCommentQuery, [JSON.stringify(comments), articleIdx]);
 
   res.sendStatus(201);
 });
 
 // RESET
 commentRouter.get('/reset', async (req, res) => {
-  const connection = await pgPool.connect();
   const initialCommentData = JSON.stringify({
     '52d0f3a6-521e-4680-8519-f152ddb09564': {
       content: 'comment of f0c15d18-4cb1-4e7b-a511-41991715e309',
@@ -141,12 +124,9 @@ commentRouter.get('/reset', async (req, res) => {
     },
   });
 
-  await connection.query(
-    'UPDATE backend.comment SET data=$1 WHERE article_idx=4;',
-    [initialCommentData],
-  );
-
-  connection.release();
+  await pgQuery('UPDATE backend.comment SET data=$1 WHERE article_idx=4;', [
+    initialCommentData,
+  ]);
 
   res.sendStatus(200);
 });
