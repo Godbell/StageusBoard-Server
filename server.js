@@ -8,6 +8,8 @@ import pgQuery from './utils/pgPool.js';
 import https from 'https';
 import fs from 'fs';
 import { configDotenv } from 'dotenv';
+import mongoPool from './utils/mongoPool.js';
+import { logSchema } from './models/log.js';
 
 configDotenv();
 
@@ -47,6 +49,16 @@ process.env.NODE_ENV === 'production' &&
 
 app.get('/', async (req, res) => {
   const sample = (await pgQuery(`SELECT * from backend.article;`)).rows;
+
+  const log = {
+    ip: req.ip,
+    userIdx: req.session.userIdx,
+    api: req.path,
+    method: req.method,
+  };
+  await mongoPool.model('log', logSchema).insertMany(log);
+  console.log(log);
+
   res.json(sample);
 });
 
