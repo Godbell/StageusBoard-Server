@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 
 configDotenv();
 
-const mongoPool = await mongoose.createConnection(
+const mongoPool = mongoose.createConnection(
   `mongodb://${process.env.DDB_USER}:${process.env.DDB_PASSWORD}@${process.env.DDB_HOST}:${process.env.DDB_PORT}/${process.env.DDB_NAME}`,
   {
     maxPoolSize: 10,
