@@ -1,22 +1,18 @@
 import { logSchema } from '../models/log.js';
 import mongoPool from './mongoPool.js';
 
-export const log = async (req) => {
+export const log = async ({ ip, userIdx, url, method }) => {
   const connection = mongoPool.useDb('stageus');
-  const { ip, userIdx, path, method } = req;
 
   try {
-    result = await connection.model('log', logSchema).insertMany({
+    const result = await connection.model('log', logSchema).insertMany({
       ip,
       userIdx,
-      path,
+      url,
       method,
     });
+    return result;
   } catch (e) {
     throw e;
-  } finally {
-    connection.close();
   }
-
-  return result;
 };

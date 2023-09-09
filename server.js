@@ -37,12 +37,21 @@ app.use(
   }),
 );
 
-app.get('/', async (req, res) => {
-  const sample = (await pgQuery(`SELECT * from backend.article;`)).rows;
-
-  await log(req).catch((e) => {
+app.all('*', async (req, res, next) => {
+  console.log(req.originalUrl);
+  await log({
+    ip: req.ip,
+    userIdx: req.session.userIdx,
+    url: req.originalUrl,
+    method: req.method,
+  }).catch((e) => {
     throw e;
   });
+  next();
+});
+
+app.get('/', async (req, res) => {
+  const sample = (await pgQuery(`SELECT * from backend.article;`)).rows;
 
   res.json(sample);
 });
@@ -60,11 +69,12 @@ app.use((err, req, res, next) => {
   res.sendStatus(500);
 });
 
-app.listen(httpPort, () => {
-  console.log(`Server is listening on port ${httpPort}`);
-});
-
-process.env.NODE_ENV === 'production' &&
+if (process.env.NODE_ENV === 'production') {
   https.createServer(sslOptions, app).listen(httpsPort, () => {
     console.log(`Server is listening on port ${httpsPort}`);
   });
+} else {
+  app.listen(httpPort, () => {
+    console.log(`Server is listening on port ${httpPort}`);
+  });
+}

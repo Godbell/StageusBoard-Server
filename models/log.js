@@ -5,7 +5,7 @@ export const logSchema = new mongoose.Schema(
     ip: String,
     userIdx: Number,
     method: String,
-    api: String,
+    url: String,
   },
   {
     timestamps: {
