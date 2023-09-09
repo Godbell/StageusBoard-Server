@@ -41,7 +41,7 @@ app.get('/', async (req, res) => {
   const sample = (await pgQuery(`SELECT * from backend.article;`)).rows;
 
   await log(req).catch((e) => {
-    throw new Error('Logging Error');
+    throw e;
   });
 
   res.json(sample);
