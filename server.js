@@ -8,8 +8,6 @@ import pgQuery from './utils/pgPool.js';
 import https from 'https';
 import fs from 'fs';
 import { configDotenv } from 'dotenv';
-import mongoPool from './utils/mongoPool.js';
-import { logSchema } from './models/log.js';
 import { log } from './utils/logger.js';
 
 configDotenv();
@@ -39,23 +37,11 @@ app.use(
   }),
 );
 
-process.env.NODE_ENV === 'production' &&
-  app.get('*', (req, res, next) => {
-    if (req.protocol === 'https') {
-      next();
-    } else {
-      res.redirect(`https://${req.hostname}:${httpsPort}${req.url}`);
-    }
-  });
-
 app.get('/', async (req, res) => {
   const sample = (await pgQuery(`SELECT * from backend.article;`)).rows;
 
-  log({
-    ip: req.ip,
-    userIdx: req.session.userIdx,
-    api: req.path,
-    method: req.method,
+  await log(req).catch((e) => {
+    throw new Error('Logging Error');
   });
 
   res.json(sample);

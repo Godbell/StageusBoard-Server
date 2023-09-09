@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 mongoose.set('bufferCommands', false);
-const mongoPool = await mongoose.connect(
+const mongoPool = mongoose.createConnection(
   `mongodb://${process.env.DDB_USER}:${process.env.DDB_PASSWORD}@${process.env.DDB_HOST}:${process.env.DDB_PORT}/${process.env.DDB_NAME}`,
   {
     maxPoolSize: 10,

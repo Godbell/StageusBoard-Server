@@ -24,8 +24,15 @@ console.log(
 
 const pgQuery = async (query, parameters = undefined) => {
   const connection = await pgPool.connect();
-  const result = await connection.query(query, parameters);
-  connection.release();
+  let result = null;
+
+  try {
+    result = await connection.query(query, parameters);
+  } catch (e) {
+    throw e;
+  } finally {
+    connection.release();
+  }
 
   return result;
 };
