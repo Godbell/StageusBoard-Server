@@ -9,6 +9,7 @@ import https from 'https';
 import fs from 'fs';
 import { configDotenv } from 'dotenv';
 import { log } from './utils/logger.js';
+import { logRouter } from './routes/log.js';
 
 configDotenv();
 
@@ -63,6 +64,7 @@ app.get('/error', async (req, res) => {
 app.use('/user', userRouter);
 app.use('/article', articleRouter);
 app.use('/comment', commentRouter);
+app.use('/log', logRouter);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
