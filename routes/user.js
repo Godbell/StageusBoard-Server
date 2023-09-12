@@ -164,56 +164,42 @@ userRouter.delete('/', async (req, res) => {
 });
 
 userRouter.post('/', async (req, res) => {
-  const password = req.body.password;
-  const isPasswordValid =
-    isFormatOf(password, { printables: true }) &&
-    password.length >= 8 &&
-    password.length <= 20;
+  const { password, username, nickname, firstName, lastName, email } = req.body;
 
-  const username = req.body.username;
-  const isUsernameValid =
+  const isInputValid =
+    isFormatOf(password, {
+      printables: true,
+      minLength: 8,
+      maxLength: 20,
+    }) &&
     isFormatOf(username, {
       alphabet: true,
       number: true,
+      minLength: 8,
+      maxLength: 20,
     }) &&
-    username.length >= 8 &&
-    username.length <= 20;
-
-  const nickname = req.body.nickname;
-  const isNicknameValid =
     isFormatOf(nickname, {
       alphabet: true,
       koreanComplete: true,
       number: true,
+      minLength: 2,
+      maxLength: 45,
     }) &&
-    nickname.length >= 2 &&
-    nickname.length <= 45;
+    isFormatOf(firstName, {
+      alphabet: true,
+      koreanComplete: true,
+      minLength: 1,
+      maxLength: 20,
+    }) &&
+    isFormatOf(lastName, {
+      alphabet: true,
+      koreanComplete: true,
+      minLength: 1,
+      maxLength: 20,
+    }) &&
+    isValidEmail(email);
 
-  const firstName = req.body.firstName;
-  const isFirstNameValid =
-    isFormatOf(firstName, { alphabet: true, koreanComplete: true }) &&
-    2 <= firstName.length &&
-    firstName.length >= 1 &&
-    firstName.length <= 20;
-
-  const lastName = req.body.lastName;
-  const isLastNameValid =
-    isFormatOf(lastName, { alphabet: true, koreanComplete: true }) &&
-    2 <= lastName.length &&
-    lastName.length >= 1 &&
-    lastName.length <= 20;
-
-  const email = req.body.email;
-  const isEmailValid = isValidEmail(email);
-
-  if (
-    !isUsernameValid ||
-    !isPasswordValid ||
-    !isNicknameValid ||
-    !isFirstNameValid ||
-    !isLastNameValid ||
-    !isEmailValid
-  ) {
+  if (!isInputValid) {
     res.sendStatus(400);
     return;
   }

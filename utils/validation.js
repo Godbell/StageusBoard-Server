@@ -27,6 +27,8 @@ export const isFormatOf = (
     number,
     lineEndings,
     printables,
+    minLength = 0,
+    maxLength = Infinity,
   },
 ) => {
   const regex = new RegExp(
@@ -40,7 +42,12 @@ export const isFormatOf = (
       ']+$',
   );
 
-  return !isNullish(str) && regex.test(str);
+  return (
+    !isNullish(str) &&
+    str.length >= minLength &&
+    str.length <= maxLength &&
+    regex.test(str)
+  );
 };
 
 export const isNumber = (number) => {
