@@ -87,46 +87,44 @@ userRouter.put('/', async (req, res) => {
     return;
   }
 
-  const password = req.body.password;
-  const isPasswordValid =
-    isFormatOf(password, { printables: true }) &&
-    password.length >= 8 &&
-    password.length <= 20;
+  const { password, username, nickname, firstName, lastName, email } = req.body;
 
-  const nickname = req.body.nickname;
-  const isNicknameValid =
+  const isInputValid =
+    isFormatOf(username, {
+      alphabet: true,
+      number: true,
+      minLength: 8,
+      maxLength: 20,
+    }) &&
     isFormatOf(nickname, {
       alphabet: true,
       koreanComplete: true,
       number: true,
+      minLength: 2,
+      maxLength: 45,
     }) &&
-    nickname.length >= 2 &&
-    nickname.length <= 45;
+    isFormatOf(firstName, {
+      alphabet: true,
+      koreanComplete: true,
+      minLength: 1,
+      maxLength: 20,
+    }) &&
+    isFormatOf(lastName, {
+      alphabet: true,
+      koreanComplete: true,
+      minLength: 1,
+      maxLength: 20,
+    }) &&
+    isValidEmail(email) &&
+    (isNullish(password) ||
+      (!isNullish(password) &&
+        isFormatOf(password, {
+          printables: true,
+          minLength: 8,
+          maxLength: 20,
+        })));
 
-  const firstName = req.body.firstName;
-  const isFirstNameValid =
-    isFormatOf(firstName, { alphabet: true, koreanComplete: true }) &&
-    2 <= firstName.length &&
-    firstName.length >= 1 &&
-    firstName.length <= 20;
-
-  const lastName = req.body.lastName;
-  const isLastNameValid =
-    isFormatOf(lastName, { alphabet: true, koreanComplete: true }) &&
-    2 <= lastName.length &&
-    lastName.length >= 1 &&
-    lastName.length <= 20;
-
-  const email = req.body.email;
-  const isEmailValid = isValidEmail(email);
-
-  if (
-    (!isNullish(password) && !isPasswordValid) ||
-    !isNicknameValid ||
-    !isFirstNameValid ||
-    !isLastNameValid ||
-    !isEmailValid
-  ) {
+  if (isInputValid) {
     res.sendStatus(400);
     return;
   }
@@ -222,13 +220,12 @@ userRouter.post('/', async (req, res) => {
 
 userRouter.get('/username/availability', async (req, res) => {
   const username = req.query.username;
-  const isUsernameValid =
-    isFormatOf(username, {
-      alphabet: true,
-      number: true,
-    }) &&
-    username.length >= 8 &&
-    username.length <= 20;
+  const isUsernameValid = isFormatOf(username, {
+    alphabet: true,
+    number: true,
+    minLength: 8,
+    maxLength: 20,
+  });
 
   if (!isUsernameValid) {
     res.sendStatus(400);
@@ -251,9 +248,8 @@ userRouter.get('/username/availability', async (req, res) => {
 
 userRouter.get('/email/availability', async (req, res) => {
   const email = req.query.email;
-  const isEmailValid = isValidEmail(email);
 
-  if (!isEmailValid) {
+  if (isValidEmail(email)) {
     res.sendStatus(400);
     return;
   }
@@ -273,19 +269,22 @@ userRouter.get('/email/availability', async (req, res) => {
 });
 
 userRouter.post('/signin', async (req, res) => {
-  const username = req.body.username;
-  const isUsernameValid = isFormatOf(username, {
-    alphabet: true,
-    number: true,
-  });
+  const { username, password } = req.body;
 
-  const password = req.body.password;
-  const isPasswordValid =
-    isFormatOf(password, { printables: true }) &&
-    password.length >= 8 &&
-    password.length <= 20;
+  const isInputValid =
+    isFormatOf(password, {
+      printables: true,
+      minLength: 8,
+      maxLength: 20,
+    }) &&
+    isFormatOf(username, {
+      alphabet: true,
+      number: true,
+      minLength: 8,
+      maxLength: 20,
+    });
 
-  if (!isUsernameValid || !isPasswordValid) {
+  if (!isInputValid) {
     res.sendStatus(400);
     return;
   }
