@@ -44,7 +44,7 @@ commentRouter.put('/', async (req, res) => {
   const updateCommentQuery = `UPDATE backend.comment SET data=$1 WHERE article_idx=$2;`;
   await pgQuery(updateCommentQuery, [JSON.stringify(comments), articleIdx]);
 
-  res.sendStatus(201);
+  res.sendStatus(200);
 });
 
 commentRouter.delete('/', async (req, res) => {
@@ -86,7 +86,7 @@ commentRouter.delete('/', async (req, res) => {
   const updateCommentQuery = `UPDATE backend.comment SET data=$1 WHERE article_idx=$2;`;
   await pgQuery(updateCommentQuery, [JSON.stringify(comments), articleIdx]);
 
-  res.sendStatus(201);
+  res.sendStatus(200);
 });
 
 // RESET

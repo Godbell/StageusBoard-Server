@@ -16,7 +16,9 @@ articleRouter.get('/all', async (req, res) => {
     ' WHERE backend.user.is_deleted=FALSE;';
   const articles = (await pgQuery(query)).rows;
 
-  res.json(articles);
+  res.json({
+    result: articles,
+  });
 });
 
 articleRouter.get('/:idx', async (req, res) => {
@@ -37,7 +39,9 @@ articleRouter.get('/:idx', async (req, res) => {
   const article = (await pgQuery(query, [articleIdx])).rows[0];
 
   if (article) {
-    res.json(article);
+    res.json({
+      result: article,
+    });
   } else {
     res.sendStatus(404);
   }
@@ -62,7 +66,7 @@ articleRouter.post('/', async (req, res) => {
     'INSERT INTO backend.article (author_idx, title, content) VALUES ($1, $2, $3);';
   await pgQuery(articleUploadQuery, [authorIdx, title, content]);
 
-  res.sendStatus(201);
+  res.sendStatus(200);
 });
 
 articleRouter.put('/:idx', async (req, res) => {
@@ -125,7 +129,7 @@ articleRouter.get('/:idx/comment/all', async (req, res) => {
   const query = `SELECT data FROM backend.comment WHERE article_idx=$1;`;
   const comments = (await pgQuery(query, [articleIdx])).rows[0]?.data;
 
-  res.json(comments ?? {});
+  res.json({ result: comments ?? {} });
 });
 
 articleRouter.post('/:idx/comment', async (req, res) => {
@@ -165,7 +169,7 @@ articleRouter.post('/:idx/comment', async (req, res) => {
   const updateCommentQuery = `UPDATE backend.comment SET data=$1 WHERE article_idx=$2;`;
   await pgQuery(updateCommentQuery, [JSON.stringify(comments), articleIdx]);
 
-  res.sendStatus(201);
+  res.sendStatus(200);
 });
 
 export default articleRouter;

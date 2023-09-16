@@ -23,7 +23,7 @@ userRouter.get('/', async (req, res) => {
     return;
   }
 
-  res.json(user);
+  res.json({ result: user });
 });
 
 userRouter.get('/find-username', async (req, res) => {
@@ -39,7 +39,7 @@ userRouter.get('/find-username', async (req, res) => {
   if (username.length === 0) {
     res.sendStatus(404);
   } else {
-    res.send(username[0].username);
+    res.json({ result: username[0].username });
   }
 });
 
@@ -237,11 +237,11 @@ userRouter.get('/username/availability', async (req, res) => {
 
   if (Number(count.rows[0].count) === 0) {
     res.json({
-      availability: true,
+      result: true,
     });
   } else {
     res.json({
-      availability: false,
+      result: false,
     });
   }
 });
@@ -259,11 +259,11 @@ userRouter.get('/email/availability', async (req, res) => {
 
   if (count === 0) {
     res.json({
-      availability: true,
+      result: true,
     });
   } else {
     res.json({
-      availability: false,
+      result: false,
     });
   }
 });
