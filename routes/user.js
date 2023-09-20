@@ -23,7 +23,12 @@ userRouter.get('/', async (req, res) => {
     return;
   }
 
-  res.json({ result: user });
+  const result = {
+    result: user,
+  };
+
+  res.locals.result = result;
+  res.json(result);
 });
 
 userRouter.get('/find-username', async (req, res) => {
@@ -39,7 +44,12 @@ userRouter.get('/find-username', async (req, res) => {
   if (username.length === 0) {
     res.sendStatus(404);
   } else {
-    res.json({ result: username[0].username });
+    const result = {
+      result: username[0].username,
+    };
+
+    res.locals.result = result;
+    res.json(result);
   }
 });
 
@@ -57,7 +67,13 @@ userRouter.get('/password/authenticate', async (req, res) => {
     res.sendStatus(404);
   } else {
     req.session.pwResetUserIdx = userIdx[0].idx;
-    res.sendStatus(200);
+
+    const result = {
+      result: user,
+    };
+
+    res.locals.result = result;
+    res.json(result);
   }
 });
 
@@ -77,7 +93,13 @@ userRouter.put('/password', async (req, res) => {
   await pgQuery(query, [password, userIdx]);
 
   req.session.destroy();
-  res.sendStatus(200);
+
+  const result = {
+    result: 'success',
+  };
+
+  res.locals.result = result;
+  res.json(result);
 });
 
 userRouter.put('/', async (req, res) => {
@@ -145,7 +167,12 @@ userRouter.put('/', async (req, res) => {
 
   await pgQuery(query, values);
 
-  res.sendStatus(200);
+  const result = {
+    result: 'success',
+  };
+
+  res.locals.result = result;
+  res.json(result);
 });
 
 userRouter.delete('/', async (req, res) => {
@@ -158,7 +185,12 @@ userRouter.delete('/', async (req, res) => {
   const query = 'UPDATE backend.user SET is_deleted=TRUE WHERE idx=$1;';
   await pgQuery(query, [authorIdx]);
 
-  res.sendStatus(200);
+  const result = {
+    result: 'success',
+  };
+
+  res.locals.result = result;
+  res.json(result);
 });
 
 userRouter.post('/', async (req, res) => {
@@ -215,7 +247,12 @@ userRouter.post('/', async (req, res) => {
     password,
   ]);
 
-  res.sendStatus(200);
+  const result = {
+    result: 'success',
+  };
+
+  res.locals.result = result;
+  res.json(result);
 });
 
 userRouter.get('/username/availability', async (req, res) => {
@@ -235,15 +272,18 @@ userRouter.get('/username/availability', async (req, res) => {
   const query = 'SELECT COUNT(*) AS count FROM backend.user WHERE username=$1';
   const count = await pgQuery(query, [username]);
 
+  const result = {
+    result: null,
+  };
+
   if (Number(count.rows[0].count) === 0) {
-    res.json({
-      result: true,
-    });
+    result.result = true;
   } else {
-    res.json({
-      result: false,
-    });
+    result.result = false;
   }
+
+  res.locals.result = result;
+  res.json(result);
 });
 
 userRouter.get('/email/availability', async (req, res) => {
@@ -256,15 +296,14 @@ userRouter.get('/email/availability', async (req, res) => {
 
   const query = 'SELECT COUNT(*) AS count FROM backend.user WHERE email=$1';
   const count = Number((await pgQuery(query, [email])).rows[0].count);
+  const result = {
+    result: null,
+  };
 
   if (count === 0) {
-    res.json({
-      result: true,
-    });
+    result.result = true;
   } else {
-    res.json({
-      result: false,
-    });
+    result.result = false;
   }
 });
 
@@ -298,7 +337,11 @@ userRouter.post('/signin', async (req, res) => {
   }
 
   req.session.userIdx = userIdx.idx;
-  res.sendStatus(200);
+
+  const result = {
+    result: 'success',
+  };
+  res.sendStatus(result);
 });
 
 userRouter.get('/signout', (req, res) => {
@@ -310,7 +353,10 @@ userRouter.get('/signout', (req, res) => {
 
   req.session.destroy();
 
-  res.sendStatus(200);
+  const result = {
+    result: 'success',
+  };
+  res.sendStatus(result);
 });
 
 export default userRouter;

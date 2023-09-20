@@ -6,6 +6,7 @@ export const logSchema = new mongoose.Schema(
     userIdx: Number,
     method: String,
     url: String,
+    response: Object,
   },
   {
     timestamps: {

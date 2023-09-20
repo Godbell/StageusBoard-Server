@@ -38,16 +38,23 @@ app.use(
   }),
 );
 
-app.all('*', async (req, res, next) => {
-  console.log(req.originalUrl);
-  await log({
-    ip: req.ip,
-    userIdx: req.session.userIdx,
-    url: req.originalUrl,
-    method: req.method,
-  }).catch((e) => {
-    throw e;
+app.use(async (req, res, next) => {
+  res.on('finish', () => {
+    console.log(res.locals.result);
+
+    log({
+      ip: req.ip,
+      userIdx: req.session.userIdx,
+      url: req.originalUrl,
+      method: req.method,
+      response: res.locals.result,
+    }).catch((e) => {
+      throw e;
+    });
+
+    res.locals.result = null;
   });
+
   next();
 });
 
@@ -58,7 +65,9 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/error', async (req, res) => {
-  throw new Error('test');
+  const sample = (await pgQuery(`SELCT * from bckend.article;`)).rows;
+
+  res.json(sample);
 });
 
 app.use('/user', userRouter);
@@ -67,8 +76,16 @@ app.use('/comment', commentRouter);
 app.use('/log', logRouter);
 
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.sendStatus(500);
+  const result = {
+    result: null,
+  };
+
+  const { status = 500, message } = err;
+
+  result.result = message;
+
+  res.locals.result = result;
+  res.status(status).json(result);
 });
 
 if (process.env.NODE_ENV === 'production') {

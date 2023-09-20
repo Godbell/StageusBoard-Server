@@ -44,5 +44,6 @@ logRouter.get('/', async (req, res) => {
     })
     .exec();
 
-  res.json({ result });
+  res.locals.result = result;
+  res.json(result);
 });

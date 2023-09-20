@@ -1,7 +1,7 @@
 import { logSchema } from '../models/log.js';
 import mongoPool from './mongoPool.js';
 
-export const log = async ({ ip, userIdx, url, method }) => {
+export const log = async ({ ip, userIdx, url, method, response }) => {
   const connection = mongoPool.useDb('stageus');
 
   try {
@@ -10,6 +10,7 @@ export const log = async ({ ip, userIdx, url, method }) => {
       userIdx,
       url,
       method,
+      response,
     });
     return result;
   } catch (e) {

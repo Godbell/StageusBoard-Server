@@ -8,8 +8,10 @@ const commentRouter = asyncify(express.Router());
 commentRouter.put('/', async (req, res) => {
   const authorIdx = req.session.userIdx;
   if (isNullish(authorIdx)) {
-    res.sendStatus(401);
-    return;
+    throw {
+      status: 401,
+      message: 'unauthorized',
+    };
   }
 
   const articleIdx = Number(req.body.articleIdx);
@@ -44,7 +46,12 @@ commentRouter.put('/', async (req, res) => {
   const updateCommentQuery = `UPDATE backend.comment SET data=$1 WHERE article_idx=$2;`;
   await pgQuery(updateCommentQuery, [JSON.stringify(comments), articleIdx]);
 
-  res.sendStatus(200);
+  const result = {
+    result: 'success',
+  };
+
+  res.locals.result = result;
+  res.json(result);
 });
 
 commentRouter.delete('/', async (req, res) => {
@@ -77,8 +84,10 @@ commentRouter.delete('/', async (req, res) => {
     ) ?? null;
 
   if (targetCommentLocation === null) {
-    res.sendStatus(400);
-    return;
+    throw {
+      status: 400,
+      message: 'invalid comment path',
+    };
   }
 
   delete targetCommentLocation[commentId];
@@ -128,7 +137,12 @@ commentRouter.get('/reset', async (req, res) => {
     initialCommentData,
   ]);
 
-  res.sendStatus(200);
+  const result = {
+    result: 'success',
+  };
+
+  res.locals.result = result;
+  res.json(result);
 });
 
 export default commentRouter;
