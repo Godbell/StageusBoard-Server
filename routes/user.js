@@ -42,15 +42,18 @@ userRouter.get('/find-username', async (req, res) => {
   const username = (await pgQuery(query, [email])).rows;
 
   if (username.length === 0) {
-    res.sendStatus(404);
-  } else {
-    const result = {
-      result: username[0].username,
+    throw {
+      status: 404,
+      message: 'not found',
     };
-
-    res.locals.result = result;
-    res.json(result);
   }
+
+  const result = {
+    result: username[0].username,
+  };
+
+  res.locals.result = result;
+  res.json(result);
 });
 
 userRouter.get('/password/authenticate', async (req, res) => {
@@ -64,29 +67,37 @@ userRouter.get('/password/authenticate', async (req, res) => {
   const userIdx = (await pgQuery(query, [email])).rows;
 
   if (userIdx.length === 0) {
-    res.sendStatus(404);
-  } else {
-    req.session.pwResetUserIdx = userIdx[0].idx;
-
-    const result = {
-      result: user,
+    throw {
+      status: 404,
+      message: 'not found',
     };
-
-    res.locals.result = result;
-    res.json(result);
   }
+
+  req.session.pwResetUserIdx = userIdx[0].idx;
+
+  const result = {
+    result: user,
+  };
+
+  res.locals.result = result;
+  res.json(result);
 });
 
 userRouter.put('/password', async (req, res) => {
   const userIdx = req.session.pwResetUserIdx;
   if (isNullish(userIdx)) {
-    res.sendStatus(401);
-    return;
+    throw {
+      status: 401,
+      message: 'unauthorized',
+    };
   }
 
   const password = req.body.password;
   if (!isFormatOf(password, { printables: true }) || password.length > 20) {
-    res.sendStatus(400);
+    throw {
+      status: 400,
+      message: 'not found',
+    };
   }
 
   const query = 'UPDATE backend.user SET password=$1 WHERE idx=$2';
@@ -105,8 +116,10 @@ userRouter.put('/password', async (req, res) => {
 userRouter.put('/', async (req, res) => {
   const userIdx = req.session.userIdx;
   if (isNullish(userIdx)) {
-    res.sendStatus(401);
-    return;
+    throw {
+      status: 401,
+      message: 'unauthorized',
+    };
   }
 
   const { password, username, nickname, firstName, lastName, email } = req.body;
@@ -147,8 +160,10 @@ userRouter.put('/', async (req, res) => {
         })));
 
   if (isInputValid) {
-    res.sendStatus(400);
-    return;
+    throw {
+      status: 400,
+      message: 'invalid input',
+    };
   }
 
   let query = null;
@@ -178,8 +193,10 @@ userRouter.put('/', async (req, res) => {
 userRouter.delete('/', async (req, res) => {
   const authorIdx = req.session.userIdx;
   if (isNullish(authorIdx)) {
-    res.sendStatus(401);
-    return;
+    throw {
+      status: 401,
+      message: 'unauthorized',
+    };
   }
 
   const query = 'UPDATE backend.user SET is_deleted=TRUE WHERE idx=$1;';
@@ -230,8 +247,10 @@ userRouter.post('/', async (req, res) => {
     isValidEmail(email);
 
   if (!isInputValid) {
-    res.sendStatus(400);
-    return;
+    throw {
+      status: 400,
+      message: 'invalid input',
+    };
   }
 
   const query =
@@ -265,8 +284,10 @@ userRouter.get('/username/availability', async (req, res) => {
   });
 
   if (!isUsernameValid) {
-    res.sendStatus(400);
-    return;
+    throw {
+      status: 400,
+      message: 'invalid username',
+    };
   }
 
   const query = 'SELECT COUNT(*) AS count FROM backend.user WHERE username=$1';
@@ -290,8 +311,10 @@ userRouter.get('/email/availability', async (req, res) => {
   const email = req.query.email;
 
   if (isValidEmail(email)) {
-    res.sendStatus(400);
-    return;
+    throw {
+      status: 400,
+      message: 'invalid email',
+    };
   }
 
   const query = 'SELECT COUNT(*) AS count FROM backend.user WHERE email=$1';
@@ -305,6 +328,9 @@ userRouter.get('/email/availability', async (req, res) => {
   } else {
     result.result = false;
   }
+
+  res.locals.result = result;
+  res.json(result);
 });
 
 userRouter.post('/signin', async (req, res) => {
@@ -324,8 +350,10 @@ userRouter.post('/signin', async (req, res) => {
     });
 
   if (!isInputValid) {
-    res.sendStatus(400);
-    return;
+    throw {
+      status: 400,
+      message: 'invalid input',
+    };
   }
 
   const query =
@@ -333,7 +361,10 @@ userRouter.post('/signin', async (req, res) => {
   const userIdx = (await pgQuery(query, [username, password])).rows[0];
 
   if (!userIdx) {
-    res.sendStatus(404);
+    throw {
+      status: 404,
+      message: 'not found',
+    };
   }
 
   req.session.userIdx = userIdx.idx;
@@ -341,14 +372,18 @@ userRouter.post('/signin', async (req, res) => {
   const result = {
     result: 'success',
   };
+
+  res.locals.result = result;
   res.sendStatus(result);
 });
 
 userRouter.get('/signout', (req, res) => {
   const authorIdx = req.session.userIdx;
   if (isNullish(authorIdx)) {
-    res.sendStatus(401);
-    return;
+    throw {
+      status: 401,
+      message: 'unauthorized',
+    };
   }
 
   req.session.destroy();
@@ -356,7 +391,9 @@ userRouter.get('/signout', (req, res) => {
   const result = {
     result: 'success',
   };
-  res.sendStatus(result);
+
+  res.locals.result = result;
+  res.json(result);
 });
 
 export default userRouter;

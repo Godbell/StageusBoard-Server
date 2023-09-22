@@ -22,8 +22,10 @@ commentRouter.put('/', async (req, res) => {
     isNumber(articleIdx) && isNumber(articleIdx) >= 0 && !isNullish(content);
 
   if (!isInputValid) {
-    res.sendStatus(400);
-    return;
+    throw {
+      status: 400,
+      message: 'invalid input',
+    };
   }
 
   const currentCommentsQuery = `SELECT data FROM backend.comment WHERE article_idx=$1;`;
@@ -37,8 +39,10 @@ commentRouter.put('/', async (req, res) => {
     )[commentId] ?? null;
 
   if (targetComment === null) {
-    res.sendStatus(400);
-    return;
+    throw {
+      status: 400,
+      message: 'invalid comment path',
+    };
   }
 
   targetComment.content = content;
@@ -69,8 +73,10 @@ commentRouter.delete('/', async (req, res) => {
     isNumber(articleIdx) && isNumber(articleIdx) >= 0 && !isNullish(content);
 
   if (!isInputValid) {
-    res.sendStatus(400);
-    return;
+    throw {
+      status: 400,
+      message: 'invalid input',
+    };
   }
 
   const currentCommentsQuery = `SELECT data FROM backend.comment WHERE article_idx=$1;`;
@@ -95,7 +101,12 @@ commentRouter.delete('/', async (req, res) => {
   const updateCommentQuery = `UPDATE backend.comment SET data=$1 WHERE article_idx=$2;`;
   await pgQuery(updateCommentQuery, [JSON.stringify(comments), articleIdx]);
 
-  res.sendStatus(200);
+  const result = {
+    result: 'success',
+  };
+
+  res.locals.result = result;
+  res.json(result);
 });
 
 // RESET

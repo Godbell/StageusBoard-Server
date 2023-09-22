@@ -18,8 +18,10 @@ logRouter.get('/', async (req, res) => {
   } = req.query;
 
   if (orderBy === '' || !['ASC', 'DSC'].includes(orderPriority)) {
-    res.sendStatus(400);
-    return;
+    throw {
+      status: 400,
+      message: 'not found',
+    };
   }
 
   const result = await mongoPool
