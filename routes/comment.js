@@ -61,8 +61,10 @@ commentRouter.put('/', async (req, res) => {
 commentRouter.delete('/', async (req, res) => {
   const authorIdx = req.session.userIdx;
   if (isNullish(authorIdx)) {
-    res.sendStatus(401);
-    return;
+    throw {
+      status: 401,
+      message: 'not found',
+    };
   }
 
   const articleIdx = Number(req.body.articleIdx);

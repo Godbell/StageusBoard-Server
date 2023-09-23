@@ -8,8 +8,10 @@ const userRouter = asyncify(express.Router());
 userRouter.get('/', async (req, res) => {
   const userIdx = req.session.userIdx;
   if (isNullish(userIdx)) {
-    res.sendStatus(401);
-    return;
+    throw {
+      status: 401,
+      message: 'unauthorized',
+    };
   }
 
   const query =
@@ -19,8 +21,10 @@ userRouter.get('/', async (req, res) => {
   const user = (await pgQuery(query, [userIdx])).rows[0];
 
   if (!user) {
-    res.sendStatus(404);
-    return;
+    throw {
+      status: 404,
+      message: 'not found',
+    };
   }
 
   const result = {
@@ -34,8 +38,10 @@ userRouter.get('/', async (req, res) => {
 userRouter.get('/find-username', async (req, res) => {
   const email = req.query.email;
   if (!isValidEmail(email)) {
-    res.sendStatus(400);
-    return;
+    throw {
+      status: 400,
+      message: 'invalid email',
+    };
   }
 
   const query = 'SELECT username FROM backend.user WHERE email=$1;';
@@ -59,8 +65,10 @@ userRouter.get('/find-username', async (req, res) => {
 userRouter.get('/password/authenticate', async (req, res) => {
   const email = req.query.email;
   if (!isValidEmail(email)) {
-    res.sendStatus(400);
-    return;
+    throw {
+      status: 400,
+      message: 'invalid email',
+    };
   }
 
   const query = 'SELECT idx FROM backend.user WHERE email=$1';
@@ -76,7 +84,7 @@ userRouter.get('/password/authenticate', async (req, res) => {
   req.session.pwResetUserIdx = userIdx[0].idx;
 
   const result = {
-    result: user,
+    result: 'success',
   };
 
   res.locals.result = result;
@@ -374,7 +382,7 @@ userRouter.post('/signin', async (req, res) => {
   };
 
   res.locals.result = result;
-  res.sendStatus(result);
+  res.json(result);
 });
 
 userRouter.get('/signout', (req, res) => {
