@@ -130,9 +130,11 @@ userRouter.put('/', async (req, res) => {
     };
   }
 
-  const { password, username, nickname, firstName, lastName, email } = req.body;
+  const { password, username, nickname, firstName, lastName, email, isAdmin } =
+    req.body;
 
   const isInputValid =
+    !isNullish(isAdmin) &&
     isFormatOf(username, {
       alphabet: true,
       number: true,
@@ -178,14 +180,35 @@ userRouter.put('/', async (req, res) => {
   const values = [];
 
   if (isNullish(password)) {
-    query =
-      'UPDATE backend.user SET nickname=$1, first_name=$2, last_name=$3, email=$4 WHERE idx=$4';
-    values.push(nickname, firstName, lastName, email, userIdx);
+    query = `UPDATE backend.user
+      SET
+      nickname=$1, 
+      first_name=$2, 
+      last_name=$3, 
+      email=$4,
+      is_admin=$5
+      WHERE idx=$6`;
+    values.push(nickname, firstName, lastName, email, isAdmin, userIdx);
   } else {
-    query =
-      'UPDATE backend.user SET nickname=$1, first_name=$2, last_name=$3, email=$4, password=$5' +
-      ' WHERE idx=$6';
-    values.push(nickname, firstName, lastName, email, password, userIdx);
+    query = `UPDATE
+      backend.user 
+      SET 
+      nickname=$1, 
+      first_name=$2, 
+      last_name=$3, 
+      email=$4, 
+      password=$5
+      is_admin=$6
+      WHERE idx=$7`;
+    values.push(
+      nickname,
+      firstName,
+      lastName,
+      email,
+      password,
+      userIdx,
+      isAdmin,
+    );
   }
 
   await pgQuery(query, values);
@@ -219,9 +242,11 @@ userRouter.delete('/', async (req, res) => {
 });
 
 userRouter.post('/', async (req, res) => {
-  const { password, username, nickname, firstName, lastName, email } = req.body;
+  const { password, username, nickname, firstName, lastName, email, isAdmin } =
+    req.body;
 
   const isInputValid =
+    !isNullish(isAdmin) &&
     isFormatOf(password, {
       printables: true,
       minLength: 8,
@@ -261,9 +286,9 @@ userRouter.post('/', async (req, res) => {
     };
   }
 
-  const query =
-    'INSERT INTO backend.user (username, nickname, first_name, last_name, email, password)' +
-    ' VALUES ($1, $2, $3, $4, $5, $6);';
+  const query = `INSERT INTO backend.user 
+    (username, nickname, first_name, last_name, email, password, is_admin)
+    VALUES ($1, $2, $3, $4, $5, $6, $7);`;
 
   await pgQuery(query, [
     username,
@@ -272,6 +297,7 @@ userRouter.post('/', async (req, res) => {
     lastName,
     email,
     password,
+    isAdmin,
   ]);
 
   const result = {
