@@ -3,10 +3,20 @@ import asyncify from 'express-asyncify';
 import mongoPool from '../utils/mongoPool.js';
 import { logSchema } from '../models/log.js';
 import escapeStringRegexp from 'escape-string-regexp';
+import { verifyToken } from '../utils/auth.js';
 
 export const logRouter = asyncify(Router());
 
 logRouter.get('/', async (req, res) => {
+  const token = verifyToken(req.cookies.token, 'userIdx');
+
+  if (token.isAdmin === false) {
+    throw {
+      status: 401,
+      message: 'unauthorized',
+    };
+  }
+
   const startDate = new Date(req.query.startDate ?? 0);
   const endDate = new Date(req.query.endDate ?? 0);
   const {

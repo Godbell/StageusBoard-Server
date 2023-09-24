@@ -2,17 +2,13 @@ import express from 'express';
 import { isFormatOf, isNullish, isValidEmail } from '../utils/validation.js';
 import asyncify from 'express-asyncify';
 import pgQuery from '../utils/pgPool.js';
+import { confirmPasswordReset, signIn, verifyToken } from '../utils/auth.js';
 
 const userRouter = asyncify(express.Router());
 
 userRouter.get('/', async (req, res) => {
-  const userIdx = req.session.userIdx;
-  if (isNullish(userIdx)) {
-    throw {
-      status: 401,
-      message: 'unauthorized',
-    };
-  }
+  const token = verifyToken(req.cookies.token, 'userIdx');
+  const userIdx = token.userIdx;
 
   const query =
     "SELECT idx, username, first_name, last_name, nickname, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at, email" +
@@ -72,16 +68,21 @@ userRouter.get('/password/authenticate', async (req, res) => {
   }
 
   const query = 'SELECT idx FROM backend.user WHERE email=$1';
-  const userIdx = (await pgQuery(query, [email])).rows;
+  const queryResult = (await pgQuery(query, [email])).rows[0];
 
-  if (userIdx.length === 0) {
+  if (queryResult.length === 0) {
     throw {
       status: 404,
       message: 'not found',
     };
   }
 
-  req.session.pwResetUserIdx = userIdx[0].idx;
+  const token = confirmPasswordReset(queryResult.idx);
+  res.cookie('token', token, {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 3600000,
+  });
 
   const result = {
     result: 'success',
@@ -92,13 +93,9 @@ userRouter.get('/password/authenticate', async (req, res) => {
 });
 
 userRouter.put('/password', async (req, res) => {
-  const userIdx = req.session.pwResetUserIdx;
-  if (isNullish(userIdx)) {
-    throw {
-      status: 401,
-      message: 'unauthorized',
-    };
-  }
+  const token = verifyToken(req.cookies.token, 'pwResetUserIdx');
+  const userIdx = token.pwResetUserIdx;
+  console.log(userIdx);
 
   const password = req.body.password;
   if (!isFormatOf(password, { printables: true }) || password.length > 20) {
@@ -111,8 +108,6 @@ userRouter.put('/password', async (req, res) => {
   const query = 'UPDATE backend.user SET password=$1 WHERE idx=$2';
   await pgQuery(query, [password, userIdx]);
 
-  req.session.destroy();
-
   const result = {
     result: 'success',
   };
@@ -122,13 +117,8 @@ userRouter.put('/password', async (req, res) => {
 });
 
 userRouter.put('/', async (req, res) => {
-  const userIdx = req.session.userIdx;
-  if (isNullish(userIdx)) {
-    throw {
-      status: 401,
-      message: 'unauthorized',
-    };
-  }
+  const token = verifyToken(req.cookies.token, 'userIdx');
+  const userIdx = token.userIdx;
 
   const { password, username, nickname, firstName, lastName, email, isAdmin } =
     req.body;
@@ -222,13 +212,8 @@ userRouter.put('/', async (req, res) => {
 });
 
 userRouter.delete('/', async (req, res) => {
-  const authorIdx = req.session.userIdx;
-  if (isNullish(authorIdx)) {
-    throw {
-      status: 401,
-      message: 'unauthorized',
-    };
-  }
+  const token = verifyToken(req.cookies.token, 'userIdx');
+  const authorIdx = token.userIdx;
 
   const query = 'UPDATE backend.user SET is_deleted=TRUE WHERE idx=$1;';
   await pgQuery(query, [authorIdx]);
@@ -391,17 +376,24 @@ userRouter.post('/signin', async (req, res) => {
   }
 
   const query =
-    'SELECT idx FROM backend.user WHERE username=$1 AND password=$2;';
-  const userIdx = (await pgQuery(query, [username, password])).rows[0];
+    'SELECT idx, is_admin FROM backend.user WHERE username=$1 AND password=$2;';
+  const queryResult = (await pgQuery(query, [username, password])).rows[0];
+  const userIdx = queryResult.idx;
+  const isAdmin = queryResult.is_admin;
 
   if (!userIdx) {
     throw {
-      status: 404,
-      message: 'not found',
+      status: 401,
+      message: 'unauthorized',
     };
   }
 
-  req.session.userIdx = userIdx.idx;
+  const token = signIn(userIdx, isAdmin);
+  res.cookie('token', token, {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: false,
+    maxAge: 3600000,
+  });
 
   const result = {
     result: 'success',
@@ -412,15 +404,13 @@ userRouter.post('/signin', async (req, res) => {
 });
 
 userRouter.get('/signout', (req, res) => {
-  const authorIdx = req.session.userIdx;
-  if (isNullish(authorIdx)) {
-    throw {
-      status: 401,
-      message: 'unauthorized',
-    };
-  }
+  let token = null;
 
-  req.session.destroy();
+  token = verifyToken(req.cookies.token, 'userIdx');
+
+  res.cookie('token', null, {
+    maxAge: 0,
+  });
 
   const result = {
     result: 'success',

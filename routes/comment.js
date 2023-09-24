@@ -2,17 +2,12 @@ import express from 'express';
 import { isNullish, isNumber } from '../utils/validation.js';
 import asyncify from 'express-asyncify';
 import pgQuery from '../utils/pgPool.js';
+import { verifyToken } from '../utils/auth.js';
 
 const commentRouter = asyncify(express.Router());
 
 commentRouter.put('/', async (req, res) => {
-  const authorIdx = req.session.userIdx;
-  if (isNullish(authorIdx)) {
-    throw {
-      status: 401,
-      message: 'unauthorized',
-    };
-  }
+  verifyToken(req.cookies.token, 'userIdx');
 
   const articleIdx = Number(req.body.articleIdx);
   const content = req.body.content;
@@ -40,7 +35,7 @@ commentRouter.put('/', async (req, res) => {
 
   if (targetComment === null) {
     throw {
-      status: 400,
+      status: 404,
       message: 'invalid comment path',
     };
   }
@@ -59,13 +54,8 @@ commentRouter.put('/', async (req, res) => {
 });
 
 commentRouter.delete('/', async (req, res) => {
-  const authorIdx = req.session.userIdx;
-  if (isNullish(authorIdx)) {
-    throw {
-      status: 401,
-      message: 'not found',
-    };
-  }
+  const token = verifyToken(req.cookies.token, 'userIdx');
+  const authorIdx = token.userIdx;
 
   const articleIdx = Number(req.body.articleIdx);
   const content = req.body.content;
@@ -93,8 +83,15 @@ commentRouter.delete('/', async (req, res) => {
 
   if (targetCommentLocation === null) {
     throw {
-      status: 400,
+      status: 404,
       message: 'invalid comment path',
+    };
+  }
+
+  if (targetCommentLocation[commentId].author_idx !== authorIdx) {
+    throw {
+      status: 401,
+      message: 'unauthorized',
     };
   }
 

@@ -3,6 +3,7 @@ import { isNullish, isNumber, isValidUuid } from '../utils/validation.js';
 import asyncify from 'express-asyncify';
 import pgQuery from '../utils/pgPool.js';
 import { v4 } from 'uuid';
+import { verifyToken } from '../utils/auth.js';
 
 const articleRouter = asyncify(express.Router());
 
@@ -66,13 +67,8 @@ articleRouter.post('/', async (req, res) => {
     result: null,
   };
 
-  const authorIdx = req.session.userIdx;
-  if (isNullish(authorIdx)) {
-    throw {
-      status: 401,
-      message: 'unauthorized',
-    };
-  }
+  const token = verifyToken(req.cookies.token, 'userIdx');
+  const authorIdx = token.userIdx;
 
   const title = req.body.title;
   const content = req.body.content;
@@ -99,13 +95,8 @@ articleRouter.put('/:idx', async (req, res) => {
     result: null,
   };
 
-  const authorIdx = req.session.userIdx;
-  if (isNullish(authorIdx)) {
-    throw {
-      status: 401,
-      message: 'unauthorized',
-    };
-  }
+  const token = verifyToken(req.cookies.token, 'userIdx');
+  const authorIdx = token.userIdx;
 
   const articleIdx = Number(req.params.idx);
   if (!isNumber(articleIdx) || articleIdx < 0) {
@@ -142,13 +133,8 @@ articleRouter.delete('/:idx', async (req, res) => {
     result: null,
   };
 
-  const authorIdx = req.session.userIdx;
-  if (isNullish(authorIdx)) {
-    throw {
-      status: 401,
-      message: 'unauthorized',
-    };
-  }
+  const token = verifyToken(req.cookies.token, 'userIdx');
+  const authorIdx = token.userIdx;
 
   const articleIdx = Number(req.params.idx);
   if (!isNumber(articleIdx) || articleIdx < 0) {
@@ -195,13 +181,8 @@ articleRouter.post('/:idx/comment', async (req, res) => {
     result: null,
   };
 
-  const authorIdx = req.session.userIdx;
-  if (isNullish(authorIdx)) {
-    throw {
-      status: 401,
-      message: 'unauthorized',
-    };
-  }
+  const token = verifyToken(req.cookies.token, 'userIdx');
+  const authorIdx = token.userIdx;
 
   const articleIdx = Number(req.params.idx);
   const content = req.body.content;

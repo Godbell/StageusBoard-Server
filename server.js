@@ -7,6 +7,7 @@ import asyncify from 'express-asyncify';
 import pgQuery from './utils/pgPool.js';
 import https from 'https';
 import fs from 'fs';
+import cookieParser from 'cookie-parser';
 import { configDotenv } from 'dotenv';
 import { log } from './utils/logger.js';
 import { logRouter } from './routes/log.js';
@@ -27,6 +28,7 @@ const sslOptions =
     : null;
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(
   expressSession({
     secret: 'stageusBoardServerSessionSecret',
@@ -44,7 +46,7 @@ app.use(async (req, res, next) => {
 
     log({
       ip: req.ip,
-      userIdx: req.session.userIdx,
+      userIdx: req.cookies['userIdx'] ?? req.cookies['pwResetUserIdx'] ?? -1,
       url: req.originalUrl,
       method: req.method,
       response: res.locals.result,
