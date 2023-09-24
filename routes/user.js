@@ -105,7 +105,7 @@ userRouter.put('/password', async (req, res) => {
     };
   }
 
-  const query = 'UPDATE backend.user SET password=$1 WHERE idx=$2';
+  const query = `UPDATE backend.user SET password=$1 WHERE idx=$2`;
   await pgQuery(query, [password, userIdx]);
 
   const result = {
@@ -215,7 +215,7 @@ userRouter.delete('/', async (req, res) => {
   const token = verifyToken(req.cookies.token, 'userIdx');
   const authorIdx = token.userIdx;
 
-  const query = 'UPDATE backend.user SET is_deleted=TRUE WHERE idx=$1;';
+  const query = `UPDATE backend.user SET is_deleted=TRUE WHERE idx=$1;`;
   await pgQuery(query, [authorIdx]);
 
   const result = {
@@ -309,7 +309,7 @@ userRouter.get('/username/availability', async (req, res) => {
     };
   }
 
-  const query = 'SELECT COUNT(*) AS count FROM backend.user WHERE username=$1';
+  const query = `SELECT COUNT(*) AS count FROM backend.user WHERE username=$1`;
   const count = await pgQuery(query, [username]);
 
   const result = {
@@ -336,7 +336,7 @@ userRouter.get('/email/availability', async (req, res) => {
     };
   }
 
-  const query = 'SELECT COUNT(*) AS count FROM backend.user WHERE email=$1';
+  const query = `SELECT COUNT(*) AS count FROM backend.user WHERE email=$1`;
   const count = Number((await pgQuery(query, [email])).rows[0].count);
   const result = {
     result: null,
@@ -375,8 +375,7 @@ userRouter.post('/signin', async (req, res) => {
     };
   }
 
-  const query =
-    'SELECT idx, is_admin FROM backend.user WHERE username=$1 AND password=$2;';
+  const query = `SELECT idx, is_admin FROM backend.user WHERE username=$1 AND password=$2;`;
   const queryResult = (await pgQuery(query, [username, password])).rows[0];
   const userIdx = queryResult.idx;
   const isAdmin = queryResult.is_admin;

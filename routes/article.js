@@ -40,14 +40,13 @@ articleRouter.get('/:idx', async (req, res) => {
     };
   }
 
-  const query =
-    'SELECT backend.article.idx, title, content,' +
-    " TO_CHAR(backend.article.created_at, 'YYYY-MM-DD HH24:MI:SS')" +
-    ' AS created_at, backend.user.nickname' +
-    ' FROM backend.article' +
-    ' JOIN backend.user' +
-    ' ON author_idx=backend.user.idx' +
-    ' WHERE backend.article.idx=$1 AND backend.article.is_deleted=FALSE;';
+  const query = `SELECT backend.article.idx, title, content,
+    TO_CHAR(backend.article.created_at, 'YYYY-MM-DD HH24:MI:SS')
+    AS created_at, backend.user.nickname
+    FROM backend.article
+    JOIN backend.user
+    ON author_idx=backend.user.idx
+    WHERE backend.article.idx=$1 AND backend.article.is_deleted=FALSE;`;
   const article = (await pgQuery(query, [articleIdx])).rows[0];
 
   if (article) {
@@ -80,8 +79,7 @@ articleRouter.post('/', async (req, res) => {
     };
   }
 
-  const articleUploadQuery =
-    'INSERT INTO backend.article (author_idx, title, content) VALUES ($1, $2, $3);';
+  const articleUploadQuery = `INSERT INTO backend.article (author_idx, title, content) VALUES ($1, $2, $3);`;
   await pgQuery(articleUploadQuery, [authorIdx, title, content]);
 
   result.result = 'success';
@@ -116,10 +114,9 @@ articleRouter.put('/:idx', async (req, res) => {
     };
   }
 
-  const query =
-    'UPDATE backend.article SET title=$1, content=$2' +
-    ' WHERE idx=$3' +
-    ' AND author_idx=$4; WHERE is_deleted=FALSE;';
+  const query = `UPDATE backend.article SET title=$1, content=$2
+    WHERE idx=$3
+    AND author_idx=$4; WHERE is_deleted=FALSE;`;
   await pgQuery(query, [title, content, articleIdx, authorIdx]);
 
   result.result = 'success';
@@ -144,8 +141,7 @@ articleRouter.delete('/:idx', async (req, res) => {
     };
   }
 
-  const query =
-    'UPDATE backend.article SET is_deleted=TRUE WHERE idx=$1 AND author_idx=$2;';
+  const query = `UPDATE backend.article SET is_deleted=TRUE WHERE idx=$1 AND author_idx=$2;`;
   await pgQuery(query, [articleIdx, authorIdx]);
 
   result.result = 'success';

@@ -143,7 +143,7 @@ commentRouter.get('/reset', async (req, res) => {
     },
   });
 
-  await pgQuery('UPDATE backend.comment SET data=$1 WHERE article_idx=4;', [
+  await pgQuery(`UPDATE backend.comment SET data=$1 WHERE article_idx=4;`, [
     initialCommentData,
   ]);
 
