@@ -397,10 +397,15 @@ userRouter.post('/signin', async (req, res) => {
 
   await redisClient.connect();
   try {
-    const usersPerHour = await redisClient.get('visitedUsers');
+    const signinsPerHour = (await redisClient.get('signinsPerHour')) ?? 0;
+    redisClient.set('signinsPerHour', Number(signinsPerHour) + 1);
+
+    const signinsTotal = (await redisClient.get('signinsTotal')) ?? 0;
+    redisClient.set('signinsTotal', Number(signinsTotal) + 1);
   } catch (e) {
+    console.log(e);
   } finally {
-    redisClient.disconnect();
+    redisClient.quit();
   }
 
   const result = {
@@ -435,18 +440,35 @@ userRouter.get('/signin/per-hour', async (req, res) => {
   };
 
   try {
-    const usersPerHour = await redisClient.get('visitedUsers');
+    const signinsPerHour = (await redisClient.get('signinsPerHour')) ?? 0;
+    result.result = signinsPerHour;
+  } catch (e) {
+    console.log(e);
+  } finally {
+    await redisClient.quit();
+    console.log('redis disconnected');
+  }
 
-    res.json({
-      result: usersPerHour,
-    });
+  res.json(result);
+});
+
+userRouter.get('/signin/total', async (req, res) => {
+  await redisClient.connect();
+  const result = {
+    result: 0,
+  };
+
+  try {
+    const signinsTotal = (await redisClient.get('signinsTotal')) ?? 0;
+    result.result = signinsTotal;
   } catch (e) {
     throw e;
   } finally {
-    await redisClient.disconnect();
+    redisClient.quit();
+    console.log('redis disconnected');
   }
-});
 
-userRouter.get('/signin/total', async (req, res) => {});
+  res.json(result);
+});
 
 export default userRouter;
