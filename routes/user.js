@@ -3,6 +3,7 @@ import { isFormatOf, isNullish, isValidEmail } from '../utils/validation.js';
 import asyncify from 'express-asyncify';
 import pgQuery from '../utils/pgPool.js';
 import { confirmPasswordReset, signIn, verifyToken } from '../utils/auth.js';
+import { redisClient } from '../utils/redisClient.js';
 
 const userRouter = asyncify(express.Router());
 
@@ -394,6 +395,14 @@ userRouter.post('/signin', async (req, res) => {
     maxAge: 3600000,
   });
 
+  await redisClient.connect();
+  try {
+    const usersPerHour = await redisClient.get('visitedUsers');
+  } catch (e) {
+  } finally {
+    redisClient.disconnect();
+  }
+
   const result = {
     result: 'success',
   };
@@ -418,5 +427,26 @@ userRouter.get('/signout', (req, res) => {
   res.locals.result = result;
   res.json(result);
 });
+
+userRouter.get('/signin/per-hour', async (req, res) => {
+  await redisClient.connect();
+  const result = {
+    result: 0,
+  };
+
+  try {
+    const usersPerHour = await redisClient.get('visitedUsers');
+
+    res.json({
+      result: usersPerHour,
+    });
+  } catch (e) {
+    throw e;
+  } finally {
+    await redisClient.disconnect();
+  }
+});
+
+userRouter.get('/signin/total', async (req, res) => {});
 
 export default userRouter;
