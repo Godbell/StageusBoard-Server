@@ -4,6 +4,7 @@ import asyncify from 'express-asyncify';
 import pgQuery from '../utils/pgPool.js';
 import { v4 } from 'uuid';
 import { verifyToken } from '../utils/auth.js';
+import { redisClient } from '../utils/redisClient.js';
 
 const articleRouter = asyncify(express.Router());
 
@@ -150,20 +151,64 @@ articleRouter.delete('/:idx', async (req, res) => {
   res.json(result);
 });
 
+articleRouter.get('/search/recent', async (req, res) => {
+  redisClient.connect();
+  const userIdx = verifyToken(req.cookies.token).userIdx;
+
+  const result = {
+    result: null,
+  };
+
+  try {
+    result.result = await redisClient.zRange(
+      `recentSearchQuery-${userIdx}`,
+      0,
+      -1,
+    );
+  } catch (e) {
+    console.log(e);
+  } finally {
+    await redisClient.quit();
+    console.log('redis disconnected');
+  }
+
+  res.json(result);
+});
+
 articleRouter.get('/search', async (req, res) => {
+  redisClient.connect();
+  const userIdx = verifyToken(req.cookies.token).userIdx;
+
   const result = {
     result: null,
   };
 
   const searchKeyword = req.query.q;
 
-  const query = `SELECT idx, title, content, author_idx, created_at FROM backend.article WHERE title LIKE ?;`;
+  const query = `SELECT idx, title, content, author_idx, created_at 
+    FROM backend.article 
+    WHERE title 
+    LIKE ?;`;
   const articles = (await pgQuery(query, [`%${searchKeyword}%`])).rows;
+
+  try {
+    await redisClient.zAdd(
+      `recentSearchQuery-${userIdx}`,
+      Date.now(),
+      searchKeyword,
+    );
+    await redisClient.zRemRangeByRank(`recentSearchQuery-${userIdx}`, 0, -11);
+  } catch (e) {
+    console.log(e);
+  } finally {
+    await redisClient.quit();
+    console.log('redis disconnected');
+  }
 
   result.result = articles;
   res.locals.result = result;
 
-  res.json(articles);
+  res.json(result);
 });
 
 articleRouter.get('/:idx/comment/all', async (req, res) => {
