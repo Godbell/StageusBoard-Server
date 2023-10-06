@@ -450,6 +450,7 @@ userRouter.get('/signin/per-hour', async (req, res) => {
   }
 
   res.json(result);
+  res.locals.result = result;
 });
 
 userRouter.get('/signin/total', async (req, res) => {
@@ -469,6 +470,7 @@ userRouter.get('/signin/total', async (req, res) => {
   }
 
   res.json(result);
+  res.locals.result = result;
 });
 
 export default userRouter;

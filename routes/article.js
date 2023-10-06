@@ -28,6 +28,92 @@ articleRouter.get('/all', async (req, res) => {
   res.json(result);
 });
 
+articleRouter.post('/', async (req, res) => {
+  const result = {
+    result: null,
+  };
+
+  const token = verifyToken(req.cookies.token, 'userIdx');
+  const authorIdx = token.userIdx;
+
+  const title = req.body.title;
+  const content = req.body.content;
+
+  if (isNullish(title) || title.length > 100 || isNullish(content)) {
+    throw {
+      status: 400,
+      message: 'invalid title or content',
+    };
+  }
+
+  const articleUploadQuery = `INSERT INTO backend.article (author_idx, title, content) VALUES ($1, $2, $3);`;
+  await pgQuery(articleUploadQuery, [authorIdx, title, content]);
+
+  result.result = 'success';
+  res.locals.result = result;
+
+  res.json(result);
+});
+
+articleRouter.get('/search/recent', async (req, res) => {
+  const userIdx = verifyToken(req.cookies.token).userIdx;
+
+  const result = {
+    result: null,
+  };
+
+  redisClient.connect();
+  try {
+    result.result = await redisClient.zRange(
+      `recentSearchQuery-${userIdx}`,
+      0,
+      -1,
+    );
+  } catch (e) {
+    console.log(e);
+  } finally {
+    await redisClient.quit();
+    console.log('redis disconnected');
+  }
+
+  res.locals.result = result;
+  res.json(result);
+});
+
+articleRouter.get('/search', async (req, res) => {
+  const userIdx = verifyToken(req.cookies.token).userIdx;
+
+  const result = {
+    result: 'success',
+  };
+
+  const searchKeyword = req.query.q;
+
+  const query = `SELECT idx, title, content, author_idx, created_at 
+    FROM backend.article 
+    WHERE title LIKE $1;`;
+  const articles = (await pgQuery(query, [`%${searchKeyword}%`])).rows;
+
+  redisClient.connect();
+  try {
+    await redisClient.zAdd(`recentSearchQuery-${userIdx}`, {
+      score: new Date(Date.now()).getTime(),
+      value: searchKeyword,
+    });
+    await redisClient.zRemRangeByRank(`recentSearchQuery-${userIdx}`, 0, -11);
+  } catch (e) {
+    console.log(e);
+  } finally {
+    await redisClient.quit();
+    console.log('redis disconnected');
+  }
+
+  result.result = articles;
+  res.locals.result = result;
+
+  res.json(result);
+});
+
 articleRouter.get('/:idx', async (req, res) => {
   const result = {
     result: null,
@@ -60,33 +146,6 @@ articleRouter.get('/:idx', async (req, res) => {
       status: 404,
       message: 'not found',
     };
-});
-
-articleRouter.post('/', async (req, res) => {
-  const result = {
-    result: null,
-  };
-
-  const token = verifyToken(req.cookies.token, 'userIdx');
-  const authorIdx = token.userIdx;
-
-  const title = req.body.title;
-  const content = req.body.content;
-
-  if (isNullish(title) || title.length > 100 || isNullish(content)) {
-    throw {
-      status: 400,
-      message: 'invalid title or content',
-    };
-  }
-
-  const articleUploadQuery = `INSERT INTO backend.article (author_idx, title, content) VALUES ($1, $2, $3);`;
-  await pgQuery(articleUploadQuery, [authorIdx, title, content]);
-
-  result.result = 'success';
-  res.locals.result = result;
-
-  res.json(result);
 });
 
 articleRouter.put('/:idx', async (req, res) => {
@@ -146,66 +205,6 @@ articleRouter.delete('/:idx', async (req, res) => {
   await pgQuery(query, [articleIdx, authorIdx]);
 
   result.result = 'success';
-  res.locals.result = result;
-
-  res.json(result);
-});
-
-articleRouter.get('/search/recent', async (req, res) => {
-  redisClient.connect();
-  const userIdx = verifyToken(req.cookies.token).userIdx;
-
-  const result = {
-    result: null,
-  };
-
-  try {
-    result.result = await redisClient.zRange(
-      `recentSearchQuery-${userIdx}`,
-      0,
-      -1,
-    );
-  } catch (e) {
-    console.log(e);
-  } finally {
-    await redisClient.quit();
-    console.log('redis disconnected');
-  }
-
-  res.json(result);
-});
-
-articleRouter.get('/search', async (req, res) => {
-  redisClient.connect();
-  const userIdx = verifyToken(req.cookies.token).userIdx;
-
-  const result = {
-    result: null,
-  };
-
-  const searchKeyword = req.query.q;
-
-  const query = `SELECT idx, title, content, author_idx, created_at 
-    FROM backend.article 
-    WHERE title 
-    LIKE ?;`;
-  const articles = (await pgQuery(query, [`%${searchKeyword}%`])).rows;
-
-  try {
-    await redisClient.zAdd(
-      `recentSearchQuery-${userIdx}`,
-      Date.now(),
-      searchKeyword,
-    );
-    await redisClient.zRemRangeByRank(`recentSearchQuery-${userIdx}`, 0, -11);
-  } catch (e) {
-    console.log(e);
-  } finally {
-    await redisClient.quit();
-    console.log('redis disconnected');
-  }
-
-  result.result = articles;
   res.locals.result = result;
 
   res.json(result);
