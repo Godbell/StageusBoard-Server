@@ -150,6 +150,22 @@ articleRouter.delete('/:idx', async (req, res) => {
   res.json(result);
 });
 
+articleRouter.get('/search', async (req, res) => {
+  const result = {
+    result: null,
+  };
+
+  const searchKeyword = req.query.q;
+
+  const query = `SELECT idx, title, content, author_idx, created_at FROM backend.article WHERE title LIKE ?;`;
+  const articles = (await pgQuery(query, [`%${searchKeyword}%`])).rows;
+
+  result.result = articles;
+  res.locals.result = result;
+
+  res.json(articles);
+});
+
 articleRouter.get('/:idx/comment/all', async (req, res) => {
   const result = {
     result: null,
