@@ -16,8 +16,13 @@ export const fileUploader = multer({
     s3: s3Client,
     bucket: process.env.AWS_S3_BUCKET,
     key: (req, file, callback) => {
-      const dir = process.env.AWS_S3_BUCKET_UPLOAD_DIR;
-      callback(null, `${dir}/attachment_${Date.now().toString()}`);
+      const filename = file.originalname;
+      callback(
+        null,
+        `${
+          process.env.AWS_S3_BUCKET_UPLOAD_DIR
+        }/${Date.now().toString()}_${filename}`,
+      );
     },
     acl: 'public-read-write',
     contentType: AUTO_CONTENT_TYPE,
