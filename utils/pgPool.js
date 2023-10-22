@@ -22,7 +22,7 @@ console.log(
   `Created PG Pool to ${dbConfig.host}:${dbConfig.port} with user ${dbConfig.user}`,
 );
 
-const pgQuery = async (query, parameters = undefined) => {
+export const pgQuery = async (query, parameters = undefined) => {
   const connection = await pgPool.connect();
   let result = null;
 

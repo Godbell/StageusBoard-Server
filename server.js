@@ -11,6 +11,7 @@ import cookieParser from 'cookie-parser';
 import { configDotenv } from 'dotenv';
 import { log } from './utils/logger.js';
 import { logRouter } from './routes/log.js';
+import { filepostRouter } from './routes/filepost.js';
 
 configDotenv();
 
@@ -76,6 +77,7 @@ app.use('/user', userRouter);
 app.use('/article', articleRouter);
 app.use('/comment', commentRouter);
 app.use('/log', logRouter);
+app.use('/filepost', filepostRouter);
 
 app.use((err, req, res, next) => {
   const result = {
@@ -83,6 +85,8 @@ app.use((err, req, res, next) => {
   };
 
   const { status = 500, message } = err;
+
+  err.stack && console.log(err.stack);
 
   result.result = message;
 
