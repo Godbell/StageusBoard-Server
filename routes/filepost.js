@@ -134,12 +134,32 @@ filepostRouter.post(
   },
 );
 
+filepostRouter.delete('/:idx', async (req, res) => {
+  const filesToDelete =
+    JSON.parse(
+      (
+        await pgQuery(`DELETE FROM backend.filepost WHERE idx=$1`, [
+          req.params.idx,
+        ])
+      ).rows[0],
+    ) ?? [];
+
+  await Promise.all(filesToDelete.map((fileKey) => deleteFile(fileKey)));
+
+  const result = {
+    result: 'success',
+  };
+
+  res.locals.result = result;
+  res.json(result);
+});
+
 filepostRouter.put('/:idx', fileUploader.array('file'), async (req, res) => {
   const title = req.body.title;
   const content = req.body.content;
-  const filesToDelete = req.body.filesToDelete;
+  const filesToDelete = JSON.parse(req.body.filesToDelete);
 
-  if (isNullish(req.params.idx) || !isNumber(req.params.idx)) {
+  if (isNullish(req.params.idx) || !isNumber(Number(req.params.idx))) {
     throw {
       status: 400,
       message: 'invalid idx',
@@ -157,11 +177,12 @@ filepostRouter.put('/:idx', fileUploader.array('file'), async (req, res) => {
     };
   }
 
-  const existingFiles = (
-    await pgQuery(`SELECT files FROM backend.filepost WHERE idx=$1`, [
-      req.params.idx,
-    ])
-  ).rows[0];
+  const existingFiles =
+    (
+      await pgQuery(`SELECT files FROM backend.filepost WHERE idx=$1`, [
+        req.params.idx,
+      ])
+    ).rows[0] ?? [];
 
   const afterDeleteFiles = existingFiles.filter(
     (file) => !filesToDelete.includes(file.key),
